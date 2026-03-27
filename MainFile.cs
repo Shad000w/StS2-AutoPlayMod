@@ -235,7 +235,7 @@ public class Patch
 			}
 		}
 
-		int num_playable_cards = 0;
+		int num_playable_cards = 0, num_cards_using_energy = 0;
 
 		for (int th = 0; th < handPile.Cards.Count; th++)
 		{
@@ -244,13 +244,20 @@ public class Patch
 			int card_energy_cost = card.EnergyCost.GetWithModifiers(CostModifiers.All);
 			//Log.Info(th + ". card: " + card.Title + " card_type: " + card.Type + " card_star_cost: " + card_star_cost + ", card_energy_cost: " + card_energy_cost);
 
-			if(card.CanPlay())
+			UnplayableReason reason;
+			AbstractModel preventer;
+
+			if (card.CanPlay(out reason, out preventer))
 			{
 				return;
 			}
 			else if (card.Type <= CardType.Power)
 			{
 				num_playable_cards++;
+			}
+			if(card_energy_cost > 0 && !reason.HasFlag(UnplayableReason.StarCostTooHigh))
+			{
+				num_cards_using_energy++;
 			}
 		}
 
@@ -285,6 +292,10 @@ public class Patch
 				//ignore
 			}
 			else if (handPile.Cards.Count == 0 && (name == "Ashwater" || name == "Bottled Potential" || name == "Gambler's Brew"))//if we have no cards in hand, then potions that does something with cards in hand are useless
+			{
+				//ignore
+			}
+			else if (num_cards_using_energy == 0 && name == "Energy Potion")//if we have no cards in hand that uses energy, then potions that gives us energy are useless
 			{
 				//ignore
 			}
