@@ -450,7 +450,7 @@ public class Patch
             {
                 //ignore
             }
-            else if (num_enemies_intends_attack == 0 && (name == "Block Potion" || name == "Shackling Potion" || name == "Potion of Binding" || name == "Weak Potion" || name == "Beetle Juice"))//if no enemy intends to attack
+            else if (num_enemies_intends_attack == 0 && (name == "Block Potion" || name == "Shackling Potion" || name == "Potion of Binding" || name == "Weak Potion" || name == "Beetle Juice" || name == "Heart of Iron"))//if no enemy intends to attack
             {
                 //ignore
             }
