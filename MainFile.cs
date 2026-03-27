@@ -110,7 +110,27 @@ public class Patch
 		}        
 	}
 
-	[HarmonyPrefix]
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(NPotionHolder), "OnRelease")]
+    private static bool OnPotionClicked(NPotionHolder __instance)
+    {
+        if (__instance?.Potion?.Model.Owner.Creature.CombatState == null) return true;
+
+        var isUsable_field = AccessTools.Field(typeof(NPotionHolder), "_isUsable");
+
+        var isUsable_value = isUsable_field.GetValue(__instance);
+
+        if (isUsable_value == null || (bool)isUsable_value == false) return true;
+
+        if (__instance.Potion.Model.Title.GetRawText() != "Foul Potion")//automatically use every potion except Foul Potion when clicked at them in combat since there is no reason to discard
+        {
+            __instance.UsePotion();
+            return false;
+        }
+        return true;
+    }
+
+    [HarmonyPrefix]
 	[HarmonyPatch(typeof(NPotionHolder), "UsePotion")]
 	private static bool UsePotion(NPotionHolder __instance, ref Task __result)
 	{
