@@ -271,7 +271,7 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (num_playable_cards == 0 && (name == "Stable Serum" || name == "Blessing of the Forge"))//if we have no playable cards in hand, then potions that retains or improve cards in hand are useless
+			else if (num_playable_cards == 0 && (name == "Stable Serum" || name == "Blessing of the Forge" || name == "Duplication Potion"))//if we have no playable cards in hand, then potions that retains or improve cards in hand are useless
 			{
 				//ignore
 			}
