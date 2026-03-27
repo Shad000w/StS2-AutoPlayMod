@@ -186,7 +186,7 @@ public class Patch
 	{
 		if (cardPlay.Card == null || cardPlay.Card.Owner == null || cardPlay.Card.CombatState == null || cardPlay.Card.Owner.PlayerCombatState == null) return;
 
-		int num_enemies_survive_this_turn = 0, num_enemies_intends_attack = 0;
+		int num_enemies_survive_this_turn = 0, num_enemies_intends_attack = 0, num_enemies_vulnerable_next_round = 0;
 
 		IReadOnlyList<Creature> enemies = cardPlay.Card.CombatState.Enemies;
 		for (int th = 0; th < enemies.Count; th++)
@@ -199,6 +199,10 @@ public class Patch
 				if (enemy.Monster?.IntendsToAttack == true)
 				{
 					num_enemies_intends_attack++;
+				}
+				if(enemy.GetPowerAmount<VulnerablePower>() > 1)
+				{
+					num_enemies_vulnerable_next_round++;
 				}
 			}
 		}
@@ -269,6 +273,10 @@ public class Patch
 				//ignore
 			}
 			else if (num_enemies_intends_attack == 0 && (name == "Block Potion" || name == "Shackling Potion" || name == "Potion of Binding" || name == "Weak Potion"))//if no enemy intends to attack
+			{
+				//ignore
+			}
+			if(num_enemies_vulnerable_next_round >= num_enemies_survive_this_turn && (name == "Vulnerable Potion" || name == "Fear Potion"))//if all enemies will be vulnerable next round too, then potions that adds vulnerable are useless
 			{
 				//ignore
 			}
