@@ -10,20 +10,28 @@ Additionally, when the attack card is hovered and only one enemy remains, it wil
 
 ### 2. Offensive potions are thrown automatically when there is just one enemy.
 
-### 3. Player turn is ended automatically if:
+### 3. Potions are used automatically during combat.
+
+With exception of Foul Potion where player still gets the default choice between use and discard. All other potions are automatically used when clicked at.
+
+### 4. Player turn is ended automatically if:
 - all enemies will die after turn ends due to the poison AND player doesn't have Feed card AND player doesn't have damaging debuff cards OR player block+plating is same or higher than what he would receive from these cards
 - player has no cards to play anymore (either no cards in hand or not enough energy/stars to play them)
 - player has no potion that would have sense to use (this is hardcoded to exact potion names, their effects, eg. Strength or Dexterity Potion has no sense when we can't play any more cards this round and so on)
 
-### 4. Cards are selected automatically if player is asked to discard during combat if:
+### 5. Cards are selected automatically if player is asked to discard during combat if:
 - the number of cards in hand is same or less than amount to discard
 - there is exactly the same amount of sly+unplayable cards in player's hand as the amount to discard
 - all remaining cards in hand are identical
 
-### 5. Before Flush Late retain selection selects cards automatically if:
+### 6. Before Flush Late retain selection selects cards automatically if:
 - player has no playable cards (in this case it selects nothing, this is allowed to do in vanilla)
 - player has less or the exact amount of playable cards than we are asked to retain
 - all remaining cards in hand are identical
+
+## Disclaimer ##
+
+Despite the mod’s name, its goal is not to play the game for the player. There are situations where all remaining cards could be played automatically, for example, when only identical cards remain, but this is not the intention of this mod. Instead, it aims to remove unnecessary steps, such as prompts like “Choose 1 of 1,” which add no meaningful gameplay value.
 
 ## Known Issues
 
