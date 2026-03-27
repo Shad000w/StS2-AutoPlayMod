@@ -449,7 +449,7 @@ public class Patch
             {
                 //ignore
             }
-            else if (drawPile.Cards.Count == 0 && name == "Distilled Chaos")//if we have no cards in draw pile, then potions that plays cards from draw pile are useless
+            else if (drawPile.Cards.Count == 0 && (name == "Distilled Chaos" || name == "Droplet of Precognition"))//if we have no cards in draw pile, then potions that plays cards from draw pile are useless
             {
                 //ignore
             }
