@@ -445,7 +445,7 @@ public class Patch
             {
                 //ignore
             }
-            else if (num_cards_using_energy == 0 && minimum_energy_needed_to_play_card <= 2 && name == "Energy Potion")//if we have no cards in hand that uses energy or only cards with higher energy cost than we can get, then potions that gives us energy are useless
+            else if (minimum_energy_needed_to_play_card > 2 && name == "Energy Potion")//if we have no cards in hand that uses energy or only cards with higher energy cost than we can get, then potions that gives us energy are useless
             {
                 //ignore
             }
