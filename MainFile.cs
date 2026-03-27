@@ -412,6 +412,7 @@ public class Patch
         }
 
         CardPile drawPile = PileType.Draw.GetPile(player);
+        CardPile discardPile = PileType.Discard.GetPile(player);
 
         //if we got here, we have no cards to play or no energy to play them
         foreach (PotionModel another_potion in player.Potions)
@@ -450,6 +451,10 @@ public class Patch
                 //ignore
             }
             else if (drawPile.Cards.Count == 0 && (name == "Distilled Chaos" || name == "Droplet of Precognition"))//if we have no cards in draw pile, then potions that plays cards from draw pile are useless
+            {
+                //ignore
+            }
+            else if (discardPile.Cards.Count == 0 && name == "Liquid Memories")//if we have no cards in discard pile, then potions that plays cards from discard pile are useless
             {
                 //ignore
             }
