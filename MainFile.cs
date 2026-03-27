@@ -12,6 +12,7 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Modding;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
+using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Debug;
@@ -185,7 +186,7 @@ public class Patch
 	{
 		if (cardPlay.Card == null || cardPlay.Card.Owner == null || cardPlay.Card.CombatState == null || cardPlay.Card.Owner.PlayerCombatState == null) return;
 
-		int num_enemies_survive_this_turn = 0;
+		int num_enemies_survive_this_turn = 0, num_enemies_intends_attack = 0;
 
 		IReadOnlyList<Creature> enemies = cardPlay.Card.CombatState.Enemies;
 		for (int th = 0; th < enemies.Count; th++)
@@ -195,6 +196,10 @@ public class Patch
 			if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<PoisonPower>() < enemy.CurrentHp))
 			{
 				num_enemies_survive_this_turn++;
+				if (enemy.Monster?.IntendsToAttack == true)
+				{
+					num_enemies_intends_attack++;
+				}
 			}
 		}
 
@@ -260,6 +265,10 @@ public class Patch
 				//ignore
 			}
 			else if (cardPlay.Card.Owner.Creature.Block <= 0 && (name == "Fortifier"))//if we have no block, then potions that multiply block are useless
+			{
+				//ignore
+			}
+			else if (num_enemies_intends_attack == 0 && (name == "Block Potion" || name == "Shackling Potion" || name == "Potion of Binding" || name == "Weak Potion"))//if no enemy intends to attack
 			{
 				//ignore
 			}
