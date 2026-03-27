@@ -235,7 +235,7 @@ public class Patch
 			}
 		}
 
-		int num_playable_cards = 0, num_cards_using_energy = 0;
+		int num_playable_cards = 0, num_cards_using_energy = 0, minimum_energy_needed_to_play_card = 99;
 
 		for (int th = 0; th < handPile.Cards.Count; th++)
 		{
@@ -255,9 +255,13 @@ public class Patch
 			{
 				num_playable_cards++;
 			}
-			if(card_energy_cost > 0 && !reason.HasFlag(UnplayableReason.StarCostTooHigh))
+			if(card_energy_cost > 0 && reason == UnplayableReason.EnergyCostTooHigh)
 			{
 				num_cards_using_energy++;
+				if (card_star_cost < minimum_energy_needed_to_play_card)
+				{
+					minimum_energy_needed_to_play_card = card_star_cost;
+				}
 			}
 		}
 
@@ -295,7 +299,7 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (num_cards_using_energy == 0 && name == "Energy Potion")//if we have no cards in hand that uses energy, then potions that gives us energy are useless
+			else if (num_cards_using_energy == 0 && minimum_energy_needed_to_play_card <= 2 && name == "Energy Potion")//if we have no cards in hand that uses energy or only cards with higher energy cost than we can get, then potions that gives us energy are useless
 			{
 				//ignore
 			}
