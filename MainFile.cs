@@ -19,6 +19,7 @@ using MegaCrit.Sts2.Core.Nodes.Debug;
 using MegaCrit.Sts2.Core.Nodes.Potions;
 using MegaCrit.Sts2.Core.Runs;
 using System;
+using System.Numerics;
 using System.Reflection;
 using Logger = MegaCrit.Sts2.Core.Logging.Logger;
 
@@ -353,7 +354,7 @@ public class Patch
 	{
 		if (player.Creature.CombatState == null) return;
 
-        int num_enemies_survive_this_turn = 0, num_enemies_intends_attack = 0, num_enemies_vulnerable_next_round = 0;
+        int num_enemies_survive_this_turn = 0, num_enemies_intends_attack = 0, num_enemies_vulnerable_next_round = 0, minimum_enemy_hitpoints = 999;
 
         IReadOnlyList<Creature> enemies = player.Creature.CombatState.Enemies;
         for (int th = 0; th < enemies.Count; th++)
@@ -369,6 +370,11 @@ public class Patch
                 if (enemy.GetPowerAmount<VulnerablePower>() > 1)
                 {
                     num_enemies_vulnerable_next_round++;
+                }
+                int hp_after_poison = enemy.CurrentHp - enemy.GetPowerAmount<PoisonPower>() - enemy.GetPowerAmount<PlowPower>();
+                if (hp_after_poison < minimum_enemy_hitpoints)
+                {
+                    minimum_enemy_hitpoints = hp_after_poison;
                 }
             }
         }
@@ -433,6 +439,7 @@ public class Patch
 
         CardPile drawPile = PileType.Draw.GetPile(player);
         CardPile discardPile = PileType.Discard.GetPile(player);
+        int total_damage_from_potions = 0;
 
         //if we got here, we have no cards to play or no energy to play them
         foreach (PotionModel another_potion in player.Potions)
@@ -482,10 +489,19 @@ public class Patch
             {
                 //ignore
             }
+            else if (another_potion.DynamicVars.ContainsKey("Damage"))//note: damage potions ignore vulnerable and plating
+            {
+                total_damage_from_potions += another_potion.DynamicVars.Damage.IntValue;
+            }
             else
             {
                 return;//if we get here we have some potion that can still benefit us this turn
             }
+        }
+
+        if (total_damage_from_potions > 0 && minimum_enemy_hitpoints <= total_damage_from_potions)//if we can't kill any enemy with our potions, then potions that deals damage are useless
+        {
+            return;
         }
 
         //if it falls here, we have no cards to play at all and no potions which would have sense to use, then end turn automatically
