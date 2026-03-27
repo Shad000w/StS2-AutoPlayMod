@@ -192,7 +192,7 @@ public class Patch
 		{
 			Creature enemy = enemies[th];
 			//Log.Info(th + ". enemy: " + enemy.Name + " hp: " + enemy.CurrentHp + " poison: " + enemy.GetPowerAmount<PoisonPower>());
-			if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<PoisonPower>() < enemy.CurrentHp))
+			if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<PoisonPower>() < enemy.CurrentHp))
 			{
 				num_enemies_survive_this_turn++;
 			}
@@ -298,7 +298,7 @@ public class Patch
 			{
 				Creature enemy = enemies[th];
 				//Log.Info(th + ". enemy: " + enemy.Name + " hp: " + enemy.CurrentHp + " poison: " + enemy.GetPowerAmount<PoisonPower>());
-				if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<PoisonPower>() < enemy.CurrentHp))
+				if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<PoisonPower>() < enemy.CurrentHp))
 				{
 					num_enemies_survive_this_turn++;
 				}
