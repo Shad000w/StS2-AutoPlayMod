@@ -255,7 +255,7 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (name != "Strength Potion" && (name == "Dexterity Potion" || name == "Flex Potion" || name == "Duplicator" || name == "Fysh Oil"))//if we can't play any card, then potions that adds Strength or Dexterity are useless
+			else if (name != "Strength Potion" && (name == "Dexterity Potion" || name == "Flex Potion" || name == "Duplicator" || name == "Fysh Oil" || name == "Speed Potion"))//if we can't play any card, then potions that adds Strength or Dexterity are useless
 			{
 				//ignore
 			}
