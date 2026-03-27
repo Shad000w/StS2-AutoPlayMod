@@ -454,7 +454,7 @@ public class Patch
             {
                 //ignore
             }
-            if (num_enemies_vulnerable_next_round >= num_enemies_survive_this_turn && (name == "Vulnerable Potion" || name == "Fear Potion"))//if all enemies will be vulnerable next round too, then potions that adds vulnerable are useless
+            else if (num_enemies_vulnerable_next_round >= num_enemies_survive_this_turn && (name == "Vulnerable Potion" || name == "Fear Potion"))//if all enemies will be vulnerable next round too, then potions that adds vulnerable are useless
             {
                 //ignore
             }
