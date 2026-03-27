@@ -189,6 +189,20 @@ public class Patch
         AutomaticEndTurn(cardPlay.Card.Owner);
     }
 
+    [HarmonyPatch(typeof(Hook), nameof(Hook.AfterPotionUsed))]
+    [HarmonyPostfix]
+    private static void AfterPotionUsed(PotionModel potion) 
+	{
+        AutomaticEndTurn(potion.Owner);
+    }
+
+    [HarmonyPatch(typeof(Hook), nameof(Hook.AfterPotionDiscarded))]
+    [HarmonyPostfix]
+    private static void AfterPotionDiscarded(PotionModel potion)
+    {
+        AutomaticEndTurn(potion.Owner);
+    }
+
     [HarmonyPatch(typeof(Creature), nameof(Creature.AfterTurnStart))]
 	[HarmonyPostfix]
 	private static void AfterTurnStart(Creature __instance, int roundNumber, CombatSide side)
