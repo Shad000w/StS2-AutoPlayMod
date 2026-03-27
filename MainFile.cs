@@ -259,6 +259,10 @@ public class Patch
 			{
 				//ignore
 			}
+			else if (cardPlay.Card.Owner.Creature.Block <= 0 && (name == "Fortifier"))//if we have no block, then potions that multiply block are useless
+			{
+				//ignore
+			}
 			else if (cardPlay.Card.Owner.Creature.CurrentHp == cardPlay.Card.Owner.Creature.MaxHp && (name == "Blood Potion" || name == "Regen Potion"))//if we have maximum HP, then potions that heals are useless
 			{
 				//ignore
