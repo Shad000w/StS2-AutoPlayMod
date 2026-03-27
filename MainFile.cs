@@ -258,9 +258,9 @@ public class Patch
 			if(card_energy_cost > 0 && reason == UnplayableReason.EnergyCostTooHigh)
 			{
 				num_cards_using_energy++;
-				if (card_star_cost < minimum_energy_needed_to_play_card)
+				if (card_energy_cost < minimum_energy_needed_to_play_card)
 				{
-					minimum_energy_needed_to_play_card = card_star_cost;
+					minimum_energy_needed_to_play_card = card_energy_cost;
 				}
 			}
 		}
