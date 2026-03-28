@@ -354,7 +354,7 @@ public class Patch
 	{
 		if (player.Creature.CombatState == null) return;
 
-        int num_enemies_survive_this_turn = 0, num_enemies_intends_attack = 0, num_enemies_vulnerable_next_round = 0, minimum_enemy_hitpoints = 999;
+        int num_enemies_survive_this_turn = 0, num_enemies_intends_attack = 0, minimum_enemy_hitpoints = 999;
 
         IReadOnlyList<Creature> enemies = player.Creature.CombatState.Enemies;
         for (int th = 0; th < enemies.Count; th++)
@@ -366,10 +366,6 @@ public class Patch
                 if (enemy.Monster?.IntendsToAttack == true)
                 {
                     num_enemies_intends_attack++;
-                }
-                if (enemy.GetPowerAmount<VulnerablePower>() > 1)
-                {
-                    num_enemies_vulnerable_next_round++;
                 }
                 int hp_after_poison = enemy.CurrentHp - enemy.GetPowerAmount<PoisonPower>() - enemy.GetPowerAmount<PlowPower>();
                 if (hp_after_poison < minimum_enemy_hitpoints)
@@ -453,11 +449,15 @@ public class Patch
         foreach (PotionModel another_potion in player.Potions)
         {
             string name = another_potion.Title.GetRawText();
-            if (name == "Gigantification Potion")//if we have no playable attack cards in hand, then potions that improve attack cards are useless
+            if (name == "Gigantification Potion" || name == "Soldier's Stew")//if we have no playable attack cards in hand, then potions that improve attack cards are useless
             {
                 //ignore
             }
-            else if (name == "Strength Potion" || name == "Dexterity Potion" || name == "Flex Potion" || name == "Duplicator" || name == "Fysh Oil" || name == "Speed Potion" || name == "Soldier's Stew")//if we can't play any card, then potions that adds Strength or Dexterity are useless
+            else if (another_potion.TargetType == TargetType.AnyPlayer && (another_potion.DynamicVars.ContainsKey("StrengthPower") || another_potion.DynamicVars.ContainsKey("DexterityPower")))//if we can't play any card, then potions that adds Strength or Dexterity are useless
+            {
+                //ignore
+            }
+            else if (another_potion.DynamicVars.ContainsKey("VulnerablePower"))//if we can't play any card, then potions that adds Vulnerability are useless
             {
                 //ignore
             }
@@ -465,19 +465,19 @@ public class Patch
             {
                 //ignore
             }
-            else if (num_enemies_intends_attack == 0 && (name == "Block Potion" || name == "Shackling Potion" || name == "Potion of Binding" || name == "Weak Potion" || name == "Beetle Juice" || name == "Heart of Iron"))//if no enemy intends to attack
+            else if (num_enemies_intends_attack == 0 && (another_potion.DynamicVars.ContainsKey("Block") || another_potion.DynamicVars.ContainsKey("PlatingPower")))//if no enemy intends to attack, then potions that adds block or plating are useless
             {
                 //ignore
             }
-            else if (num_enemies_vulnerable_next_round >= num_enemies_survive_this_turn && (name == "Vulnerable Potion" || name == "Fear Potion"))//if all enemies will be vulnerable next round too, then potions that adds vulnerable are useless
+            else if (num_enemies_intends_attack == 0 && (another_potion.DynamicVars.ContainsKey("WeakPowername") || another_potion.DynamicVars.ContainsKey("DamageDecrease")))//if no enemy intends to attack, then potions that weakens enemy are useless
             {
                 //ignore
             }
-            else if (player.Creature.CurrentHp == player.Creature.MaxHp && (name == "Blood Potion" || name == "Regen Potion"))//if we have maximum HP, then potions that heals are useless
+            else if ((another_potion.TargetType == TargetType.AllEnemies || another_potion.TargetType == TargetType.AnyEnemy || another_potion.TargetType == TargetType.RandomEnemy) && another_potion.DynamicVars.ContainsKey("StrengthPower"))//if no enemy intends to attack, then potions that reduces enemy Strength are useless
             {
                 //ignore
-            }
-            else if (handPile.Cards.Count == 0 && (name == "Ashwater" || name == "Bottled Potential" || name == "Gambler's Brew"))//if we have no cards in hand, then potions that does something with cards in hand are useless
+            }            
+            else if (player.Creature.CurrentHp >= player.Creature.MaxHp && (another_potion.DynamicVars.ContainsKey("MaxHp") || another_potion.DynamicVars.ContainsKey("HealPercent") || another_potion.DynamicVars.ContainsKey("RegenPower")))//if we have maximum HP, then potions that modify HPs are useless
             {
                 //ignore
             }
@@ -486,6 +486,10 @@ public class Patch
                 //ignore
             }
             else if (another_potion.DynamicVars.ContainsKey("Stars") && minimum_stars_needed_to_play_card > another_potion.DynamicVars.Stars.IntValue)//if we have no cards in hand that uses stars or only cards with higher stars cost than we can get, then potions that gives us stars are useless
+            {
+                //ignore
+            }
+            else if (handPile.Cards.Count == 0 && (name == "Ashwater" || name == "Bottled Potential" || name == "Gambler's Brew"))//if we have no cards in hand, then potions that does something with cards in hand are useless
             {
                 //ignore
             }
