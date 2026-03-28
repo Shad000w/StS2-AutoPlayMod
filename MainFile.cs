@@ -343,6 +343,28 @@ public class Patch
 		}
 	}
 
+	[HarmonyPatch(typeof(NPlayerHand), "SelectCardInSimpleMode")]
+	[HarmonyPostfix]
+	private static void SelectCardInSimpleMode(NPlayerHand __instance)
+	{
+		var prefsField = Traverse.Create(__instance).Field<CardSelectorPrefs>("_prefs");
+		if (prefsField == null) return;
+		var prefs = prefsField.Value;
+
+		var selectedCards = Traverse.Create(__instance).Field<List<CardModel>>("_selectedCards").Value;
+		int selectedCount = selectedCards?.Count ?? 0;
+
+		if (prefs.MaxSelect < 1) return;
+		else if (selectedCards == null || selectedCount != prefs.MaxSelect) return;
+
+		// Press the confirm button to complete the selection
+		var confirmMethod = AccessTools.Method(__instance.GetType(), "OnSelectModeConfirmButtonPressed");
+		if (confirmMethod != null)
+		{
+			confirmMethod.Invoke(__instance, new object[] { null! });
+		}
+	}
+
 	[HarmonyPatch(typeof(CardSelectCmd), nameof(CardSelectCmd.FromHand))]
 	[HarmonyPrefix]
 	private static void FromHand(PlayerChoiceContext context, Player player, CardSelectorPrefs prefs, Func<CardModel, bool>? filter, AbstractModel source)
