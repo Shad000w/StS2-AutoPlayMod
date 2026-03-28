@@ -473,7 +473,7 @@ public class Patch
             {
                 //ignore
             }
-            else if ((minimum_energy_needed_to_play_card > 2 && name == "Energy Potion") || (minimum_energy_needed_to_play_card > 1 && name == "Radiant Tincture"))//if we have no cards in hand that uses energy or only cards with higher energy cost than we can get, then potions that gives us energy are useless
+            else if (another_potion.DynamicVars.ContainsKey("Energy") && minimum_energy_needed_to_play_card > another_potion.DynamicVars.Energy.IntValue)//if we have no cards in hand that uses energy or only cards with higher energy cost than we can get, then potions that gives us energy are useless
             {
                 //ignore
             }
