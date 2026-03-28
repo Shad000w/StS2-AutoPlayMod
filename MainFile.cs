@@ -407,7 +407,7 @@ public class Patch
             }
         }
 
-        int num_playable_cards = 0, num_cards_using_energy = 0, minimum_energy_needed_to_play_card = 99;
+        int num_playable_cards = 0, num_cards_using_energy = 0, num_cards_using_stars = 0, minimum_energy_needed_to_play_card = 99, minimum_stars_needed_to_play_card = 99;
 
         for (int th = 0; th < handPile.Cards.Count; th++)
         {
@@ -433,6 +433,14 @@ public class Patch
                 if (card_energy_cost < minimum_energy_needed_to_play_card)
                 {
                     minimum_energy_needed_to_play_card = card_energy_cost;
+                }
+            }
+            if (card_star_cost > 0 && reason == UnplayableReason.StarCostTooHigh)
+            {
+                num_cards_using_stars++;
+                if (card_star_cost < minimum_stars_needed_to_play_card)
+                {
+                    minimum_stars_needed_to_play_card = card_star_cost;
                 }
             }
         }
@@ -474,6 +482,10 @@ public class Patch
                 //ignore
             }
             else if (another_potion.DynamicVars.ContainsKey("Energy") && minimum_energy_needed_to_play_card > another_potion.DynamicVars.Energy.IntValue)//if we have no cards in hand that uses energy or only cards with higher energy cost than we can get, then potions that gives us energy are useless
+            {
+                //ignore
+            }
+            else if (another_potion.DynamicVars.ContainsKey("Stars") && minimum_stars_needed_to_play_card > another_potion.DynamicVars.Stars.IntValue)//if we have no cards in hand that uses stars or only cards with higher stars cost than we can get, then potions that gives us stars are useless
             {
                 //ignore
             }
