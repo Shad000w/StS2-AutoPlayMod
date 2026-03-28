@@ -413,9 +413,8 @@ public class Patch
             //Log.Info(th + ". card: " + card.Title + " card_type: " + card.Type + " card_star_cost: " + card_star_cost + ", card_energy_cost: " + card_energy_cost);
 
             UnplayableReason reason;
-            AbstractModel preventer;
 
-            if (card.CanPlay(out reason, out preventer))
+            if (card.CanPlay(out reason, preventer : out _))
             {
                 return;
             }
