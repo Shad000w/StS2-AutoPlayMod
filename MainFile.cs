@@ -297,6 +297,8 @@ public class Patch
 			}
 			else
 			{
+				CardModel? first_optimal_card__to_discard = null;
+				bool all_cards_to_discard_optimally_identical = true;
 				int num_cards_to_discard_optimally = 0;
 				for (int th = 0; th < handPile.Cards.Count; th++)
 				{
@@ -304,6 +306,11 @@ public class Patch
 					if (card.IsSlyThisTurn || card.Type > CardType.Power)
 					{
 						num_cards_to_discard_optimally++;
+						if (first_optimal_card__to_discard == null) first_optimal_card__to_discard = card;
+						else if(!CardsEqual(first_optimal_card__to_discard, card))
+						{
+							all_cards_to_discard_optimally_identical = false;
+						}
 					}
 				}
 
@@ -316,6 +323,19 @@ public class Patch
 						{
 							selected.Add(card);
 							num_cards_to_discard_optimally--;
+						}
+					}
+				}
+				else if(num_cards_to_discard_optimally > prefs.MinSelect && all_cards_to_discard_optimally_identical)//if all optimally discardable cards are same, discard required amount automatically
+				{
+					int num_to_discard = prefs.MinSelect;
+					for (int th = 0; th < handPile.Cards.Count && num_to_discard > 0; th++)
+					{
+						CardModel card = handPile.Cards[th];
+						if (card.IsSlyThisTurn || card.Type > CardType.Power)
+						{
+							selected.Add(card);
+							num_to_discard--;
 						}
 					}
 				}
