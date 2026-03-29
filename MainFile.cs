@@ -595,7 +595,7 @@ public class Patch
 		if (cardA.Type != cardB.Type) return false;
 		else if (cardA.Type != cardB.Type) return false;
 		else if (cardA.Rarity != cardB.Rarity) return false;
-		else if (cardA.Title != cardB.Title) return false;
+		else if (cardA.Id.Entry != cardB.Id.Entry) return false;
 		else if (cardA.CurrentUpgradeLevel != cardB.CurrentUpgradeLevel) return false;
 		if (cardA.Enchantment == null && cardB.Enchantment != null) return false;
 		else if(cardA.Enchantment != null && cardB.Enchantment != null)
