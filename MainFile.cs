@@ -437,14 +437,17 @@ public class Patch
         for (int th = 0; th < enemies.Count; th++)
         {
             Creature enemy = enemies[th];
-            if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<PoisonPower>() < enemy.CurrentHp))
+            int damage_from_poison = (enemy.GetPower<PoisonPower>()?.CalculateTotalDamageNextTurn() ?? 0);
+
+            if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || damage_from_poison < enemy.CurrentHp))
             {
                 num_enemies_survive_this_turn++;
+
                 if (enemy.Monster?.IntendsToAttack == true)
                 {
                     num_enemies_intends_attack++;
                 }
-                int hp_after_poison = enemy.CurrentHp - enemy.GetPowerAmount<PoisonPower>() - enemy.GetPowerAmount<PlowPower>() + enemy.Block;
+                int hp_after_poison = enemy.CurrentHp - damage_from_poison - enemy.GetPowerAmount<PlowPower>() + enemy.Block;
                 if (hp_after_poison < minimum_enemy_hitpoints)
                 {
                     minimum_enemy_hitpoints = hp_after_poison;
