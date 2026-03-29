@@ -285,6 +285,7 @@ public class Patch
 
 			if (handPile.Cards.Count == 0) return true;//if we have no cards, game already selects nothing by default, so we can leave it to original function
 			else if (prefs.MaxSelect == 999999999) return true;//Gambler's Brew potion
+			else if (prefs.RequireManualConfirmation || prefs.MinSelect == 0) return true;
 
 			var selected = new List<CardModel> { };
 
