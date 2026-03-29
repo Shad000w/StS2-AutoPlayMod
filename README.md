@@ -19,15 +19,25 @@ With exception of Foul Potion where player still gets the default choice between
 - player has no cards to play anymore (either no cards in hand or not enough energy/stars to play them)
 - player has no potion that would have sense to use (this is hardcoded to exact potion names, their effects, eg. Strength or Dexterity Potion has no sense when we can't play any more cards this round and so on)
 
-### 5. Cards are selected automatically if player is asked to discard during combat if:
+### 5. Retain/Discard selection doesn't need to be confirmed.
+
+If you choose required amount of cards the selection will end automatically, so make up your mind before you click!
+
+### 6. Cards are selected automatically if player is asked to discard during combat if:
 - the number of cards in hand is same or less than amount to discard
 - there is exactly the same amount of sly+unplayable cards in player's hand as the amount to discard
+- number of sly+unplayable cards in players's hand is greater than amount to discard, but they are identical
 - all remaining cards in hand are identical
 
-### 6. Before Flush Late retain selection selects cards automatically if:
+### 7. Before Flush Late retain selection selects cards automatically if:
 - player has no playable cards (in this case it selects nothing, this is allowed to do in vanilla)
 - player has less or the exact amount of playable cards than we are asked to retain
 - all remaining cards in hand are identical
+
+### 8. Any other card selection during combat also selects cards automaically if:
+- all cards in selection are equal
+
+This type of selection is triggered from various cards for various purposes so there is no other condition to use and in this exact case (unlike discard) game selects automatically if the number of cards in selection is same or lesser than required amount.
 
 ## Disclaimer ##
 
