@@ -493,9 +493,7 @@ public class Patch
             int card_energy_cost = card.EnergyCost.GetWithModifiers(CostModifiers.All);
             //Log.Info(th + ". card: " + card.Title + " card_type: " + card.Type + " card_star_cost: " + card_star_cost + ", card_energy_cost: " + card_energy_cost);
 
-            UnplayableReason reason;
-
-            if (card.CanPlay(out reason, preventer : out _))
+            if (card.CanPlay(out UnplayableReason reason, preventer : out _))
             {
                 return;
             }
