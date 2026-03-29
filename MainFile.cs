@@ -343,7 +343,7 @@ public class Patch
 				{
 					CardModel first = handPile.Cards[0];
 
-					for (int th = 0; th < handPile.Cards.Count; th++)
+					for (int th = 1; th < handPile.Cards.Count; th++)
 					{
 						if (!CardsEqual(first, handPile.Cards[th]))
 						{
