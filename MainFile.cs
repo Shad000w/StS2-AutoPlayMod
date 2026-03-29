@@ -392,6 +392,41 @@ public class Patch
 		ModState.CurrentPlayer = player;
 	}
 
+	[HarmonyPatch(typeof(CardSelectCmd), nameof(CardSelectCmd.FromSimpleGrid))]
+	[HarmonyPrefix]
+	private static bool FromSimpleGrid(PlayerChoiceContext context, IReadOnlyList<CardModel> cardsIn, Player player, CardSelectorPrefs prefs, ref Task<IEnumerable<CardModel>> __result)
+	{
+		if (CombatManager.Instance.IsEnding)
+		{
+			return true;
+		}
+
+		List<CardModel> cards = cardsIn.ToList();
+		if (!prefs.RequireManualConfirmation && cards.Count <= prefs.MinSelect)//if we have less cards than needed to select fall back to original function (it selects automatically)
+		{
+			return true;
+		}
+
+		CardModel first = cards[0];
+		for (int th = 1; th < cards.Count; th++)
+		{
+			if (!CardsEqual(first, cards[th]))
+			{
+				return true;
+			}
+		}
+
+		//if all remaining cards are identical, it will select required amount automatically
+		var selected = new List<CardModel> { };
+		for (int th = 0; th < prefs.MinSelect; th++)
+		{
+		selected.Add(cards[th]);
+		}
+
+		__result = Task.FromResult<IEnumerable<CardModel>>(selected);
+		return false;
+	}
+
 	private static void AutomaticEndTurn(Player player)
 	{
 		if (player.Creature.CombatState == null) return;
