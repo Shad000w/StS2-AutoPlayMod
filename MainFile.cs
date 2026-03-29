@@ -480,7 +480,7 @@ public class Patch
             }
         }
 
-        int num_playable_cards = 0, num_cards_using_energy = 0, num_cards_using_stars = 0, minimum_energy_needed_to_play_card = 99, minimum_stars_needed_to_play_card = 99;
+        int num_playable_cards = 0, num_upgradable_cards = 0, num_cards_using_energy = 0, num_cards_using_stars = 0, minimum_energy_needed_to_play_card = 99, minimum_stars_needed_to_play_card = 99;
 
         for (int th = 0; th < handPile.Cards.Count; th++)
         {
@@ -498,6 +498,10 @@ public class Patch
             else if (card.Type <= CardType.Power)
             {
                 num_playable_cards++;
+            }
+            if(card.IsUpgradable)
+            {
+                num_upgradable_cards++;
             }
             if (card_energy_cost > 0 && reason == UnplayableReason.EnergyCostTooHigh)
             {
@@ -578,6 +582,10 @@ public class Patch
                 //ignore
             }
             else if (num_playable_cards == 0 && (id == "STABLE_SERUM" || id == "BLESSING_OF_THE_FORGE" || id == "DUPLICATOR"))//if we have no playable cards in hand, then potions that retains or improve cards in hand are useless
+            {
+                //ignore
+            }
+            else if(num_upgradable_cards == 0 && id == "BLESSING_OF_THE_FORGE")//if we have no upgradable cards in hand, then potions that upgrade cards are useless
             {
                 //ignore
             }
