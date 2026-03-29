@@ -409,7 +409,7 @@ public class Patch
                 {
                     num_enemies_intends_attack++;
                 }
-                int hp_after_poison = enemy.CurrentHp - enemy.GetPowerAmount<PoisonPower>() - enemy.GetPowerAmount<PlowPower>();
+                int hp_after_poison = enemy.CurrentHp - enemy.GetPowerAmount<PoisonPower>() - enemy.GetPowerAmount<PlowPower>() + enemy.Block;
                 if (hp_after_poison < minimum_enemy_hitpoints)
                 {
                     minimum_enemy_hitpoints = hp_after_poison;
