@@ -253,7 +253,7 @@ public class Patch
 				for (int th = 0; th < handPile.Cards.Count; th++)
 				{
 					CardModel card = handPile.Cards[th];
-					if(card.Title == "Feed")
+					if(card.Id.Entry == "FEED")
 					{
 						has_feed_card = true;
 					}
@@ -524,8 +524,8 @@ public class Patch
         //if we got here, we have no cards to play or no energy to play them
         foreach (PotionModel another_potion in player.Potions)
         {
-            string name = another_potion.Title.GetRawText();
-            if (name == "Gigantification Potion" || name == "Soldier's Stew")//if we have no playable attack cards in hand, then potions that improve attack cards are useless
+			string id = another_potion.Id.Entry;
+            if (id == "GIGANTIFICATION_POTION" || id == "SOLDIERS_STEW")//if we have no playable attack cards in hand, then potions that improve attack cards are useless
             {
                 //ignore
             }
@@ -537,7 +537,7 @@ public class Patch
             {
                 //ignore
             }
-            else if (player.Creature.Block <= 0 && (name == "Fortifier"))//if we have no block, then potions that multiply block are useless
+            else if (player.Creature.Block <= 0 && id == "FORTIFIER")//if we have no block, then potions that multiply block are useless
             {
                 //ignore
             }
@@ -565,19 +565,19 @@ public class Patch
             {
                 //ignore
             }
-            else if (handPile.Cards.Count == 0 && (name == "Ashwater" || name == "Bottled Potential" || name == "Gambler's Brew"))//if we have no cards in hand, then potions that does something with cards in hand are useless
+            else if (handPile.Cards.Count == 0 && (id == "ASHWATER" || id == "BOTTLED_POTENTIAL" || id == "GAMBLERS_BREW"))//if we have no cards in hand, then potions that does something with cards in hand are useless
             {
                 //ignore
             }
-            else if (drawPile.Cards.Count == 0 && (name == "Distilled Chaos" || name == "Droplet of Precognition"))//if we have no cards in draw pile, then potions that plays cards from draw pile are useless
+            else if (drawPile.Cards.Count == 0 && (id == "DISTILLED_CHAOS" || id == "DROPLET_OF_PRECOGNITION"))//if we have no cards in draw pile, then potions that plays cards from draw pile are useless
             {
                 //ignore
             }
-            else if (discardPile.Cards.Count == 0 && name == "Liquid Memories")//if we have no cards in discard pile, then potions that plays cards from discard pile are useless
+            else if (discardPile.Cards.Count == 0 && id == "LIQUID_MEMORIES")//if we have no cards in discard pile, then potions that plays cards from discard pile are useless
             {
                 //ignore
             }
-            else if (num_playable_cards == 0 && (name == "Stable Serum" || name == "Blessing of the Forge" || name == "Duplication Potion"))//if we have no playable cards in hand, then potions that retains or improve cards in hand are useless
+            else if (num_playable_cards == 0 && (id == "STABLE_SERUM" || id == "BLESSING_OF_THE_FORGE" || id == "DUPLICATOR"))//if we have no playable cards in hand, then potions that retains or improve cards in hand are useless
             {
                 //ignore
             }
@@ -587,12 +587,32 @@ public class Patch
             }
             else
             {
+                //NRun.Instance?.GlobalUi.TopBar.PotionContainer.AnimatePotion(another_potion);
                 return;//if we get here we have some potion that can still benefit us this turn
             }
         }
 
         if (total_damage_from_potions > 0 && minimum_enemy_hitpoints <= total_damage_from_potions)//if we can't kill any enemy with our potions, then potions that deals damage are useless
         {
+			/*
+            foreach (PotionModel another_potion in player.Potions)
+            {
+				if (another_potion.DynamicVars.ContainsKey("Damage"))
+				{
+					NPotionContainer? container = NRun.Instance?.GlobalUi.TopBar.PotionContainer;
+                    var holders = Traverse.Create(container)
+                        .Field<List<NPotionHolder>>("_holders")
+                        .Value;
+
+                    var nPotionHolder = holders?.FirstOrDefault(n =>
+                        n.Potion != null && n.Potion.Model == another_potion);
+
+					var npotion = nPotionHolder?.Potion;
+
+                    Traverse.Create(npotion).Method("DoFlash").GetValue();
+                }
+            }
+			*/
             return;
         }
 
