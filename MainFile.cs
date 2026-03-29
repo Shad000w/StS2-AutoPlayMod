@@ -207,7 +207,10 @@ public class Patch
 	[HarmonyPostfix]
 	private static void AfterCardPlayed(CardPlay cardPlay)
 	{
-        AutomaticEndTurn(cardPlay.Card.Owner);
+		if (CombatManager.Instance.IsPlayPhase)
+		{
+			AutomaticEndTurn(cardPlay.Card.Owner);
+		}			
     }
 
     [HarmonyPatch(typeof(Hook), nameof(Hook.AfterPotionUsed))]
