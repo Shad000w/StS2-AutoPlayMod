@@ -239,8 +239,9 @@ public class Patch
 			for (int th = 0; th < enemies.Count; th++)
 			{
 				Creature enemy = enemies[th];
-				//Log.Info(th + ". enemy: " + enemy.Name + " hp: " + enemy.CurrentHp + " poison: " + enemy.GetPowerAmount<PoisonPower>());
-				if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<PoisonPower>() < enemy.CurrentHp))
+				int damage_from_poison = (enemy.GetPower<PoisonPower>()?.CalculateTotalDamageNextTurn() ?? 0);
+
+				if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<AdaptablePower>() > 0 || damage_from_poison < enemy.CurrentHp))
 				{
 					num_enemies_survive_this_turn++;
 				}
@@ -248,7 +249,7 @@ public class Patch
 
 			CardPile handPile = PileType.Hand.GetPile(__instance.Player);
 
-			if (num_enemies_survive_this_turn == 0)//no enemies will survive after this card was played
+			if (num_enemies_survive_this_turn == 0)//no enemies will survive after turn started
 			{
 				int num_damage_received_from_cards = 0;
 				bool has_feed_card = false;
