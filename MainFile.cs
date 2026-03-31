@@ -153,10 +153,8 @@ public class Patch
 	[HarmonyPatch(typeof(WellLaidPlansPower), "BeforeFlushLate")]
 	private static bool BeforeFlushLate(WellLaidPlansPower __instance, PlayerChoiceContext choiceContext, Player player, ref Task __result)
 	{
-		if (player != __instance.Owner.Player)
-		{
-			return true;
-		}
+		if (!ModSettings.AutomaticRetain) return true;
+		if (player != __instance.Owner.Player) return true;
 
 		CardPile handPile = PileType.Hand.GetPile(__instance.Owner.Player);
 
@@ -165,7 +163,7 @@ public class Patch
 		{
 			foreach (CardModel item in handPile.Cards)
 			{
-				if (item.Type <= CardType.Power)
+				if (item.Type <= CardType.Power && !item.Keywords.Contains(CardKeyword.Retain))
 				{
 					item.GiveSingleTurnRetain();
 				}
@@ -192,7 +190,7 @@ public class Patch
 		for (int th = 0; th < handPile.Cards.Count && num_to_retain > 0; th++)
 		{
 			CardModel card = handPile.Cards[th];
-			if (card.Type <= CardType.Power)
+			if (card.Type <= CardType.Power && !card.Keywords.Contains(CardKeyword.Retain))
 			{
 				card.GiveSingleTurnRetain();
 				num_to_retain--;
