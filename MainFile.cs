@@ -309,6 +309,8 @@ public class Patch
 		private static bool Prefix(NPlayerHand __instance, CardSelectorPrefs prefs, Func<CardModel, bool> filter, AbstractModel source, NPlayerHand.Mode mode, ref Task<IEnumerable<CardModel>> __result)
 		{
 			bool IsDiscardTypeOfSelect = prefs.Prompt.LocEntryKey == "TO_DISCARD";
+			bool IsExhaustTypeOfSelect = prefs.Prompt.LocEntryKey == "TO_EXHAUST";
+
 			if (!IsDiscardTypeOfSelect && !ModSettings.AutomaticSelect) return true;
 			else if (IsDiscardTypeOfSelect && !ModSettings.AutomaticDiscard) return true;
 			else if (ModState.CurrentPlayer == null) return true;
@@ -376,6 +378,67 @@ public class Patch
 				{
 					CardModel first = handPile.Cards[0];
 
+					for (int th = 1; th < handPile.Cards.Count; th++)
+					{
+						if (!CardsEqual(first, handPile.Cards[th]))
+						{
+							return true;
+						}
+					}
+
+					for (int th = 0; th < prefs.MinSelect; th++)
+					{
+						selected.Add(handPile.Cards[th]);
+					}
+				}
+			}
+			else if (IsExhaustTypeOfSelect)
+			{
+				CardModel? first_optimal_card__to_exhaust = null;
+				bool all_cards_to_exhaust_optimally_identical = true;
+				int num_cards_to_exhaust_optimally = 0;
+				for (int th = 0; th < handPile.Cards.Count; th++)
+				{
+					CardModel card = handPile.Cards[th];
+					if (card.Type > CardType.Power)
+					{
+						num_cards_to_exhaust_optimally++;
+						if (first_optimal_card__to_exhaust == null) first_optimal_card__to_exhaust = card;
+						else if (!CardsEqual(first_optimal_card__to_exhaust, card))
+						{
+							all_cards_to_exhaust_optimally_identical = false;
+						}
+					}
+				}
+
+				if (num_cards_to_exhaust_optimally == prefs.MinSelect)//if there is only one Sly or unplayable card it will discard it automatically - should be always the most optimal choice
+				{
+					for (int th = 0; th < handPile.Cards.Count && num_cards_to_exhaust_optimally > 0; th++)
+					{
+						CardModel card = handPile.Cards[th];
+						if (card.Type > CardType.Power)
+						{
+							selected.Add(card);
+							num_cards_to_exhaust_optimally--;
+						}
+					}
+				}
+				else if (num_cards_to_exhaust_optimally > prefs.MinSelect && all_cards_to_exhaust_optimally_identical)//if all optimally discardable cards are same, discard required amount automatically
+				{
+					int num_to_discard = prefs.MinSelect;
+					for (int th = 0; th < handPile.Cards.Count && num_to_discard > 0; th++)
+					{
+						CardModel card = handPile.Cards[th];
+						if (card.Type > CardType.Power)
+						{
+							selected.Add(card);
+							num_to_discard--;
+						}
+					}
+				}
+				else
+				{
+					CardModel first = handPile.Cards[0];
 					for (int th = 1; th < handPile.Cards.Count; th++)
 					{
 						if (!CardsEqual(first, handPile.Cards[th]))
