@@ -673,6 +673,10 @@ public class Patch
             {
                 //ignore
             }
+            else if (another_potion.DynamicVars.ContainsKey("Forge"))//if we can't play any card, then potions that Forges are useless
+            {
+                //ignore
+            }
             else if (player.Creature.Block <= 0 && id == "FORTIFIER")//if we have no block, then potions that multiply block are useless
             {
                 //ignore
