@@ -444,7 +444,7 @@ public class Patch
 				for (int th = 0; th < handPile.Cards.Count; th++)
 				{
 					CardModel card = handPile.Cards[th];
-					if (card.Type > CardType.Power)
+					if (card.Type > CardType.Power || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
 					{
 						num_cards_to_exhaust_optimally++;
 						if (first_optimal_card__to_exhaust == null) first_optimal_card__to_exhaust = card;
@@ -460,7 +460,7 @@ public class Patch
 					for (int th = 0; th < handPile.Cards.Count && num_cards_to_exhaust_optimally > 0; th++)
 					{
 						CardModel card = handPile.Cards[th];
-						if (card.Type > CardType.Power)
+						if (card.Type > CardType.Power || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
 						{
 							selected.Add(card);
 							num_cards_to_exhaust_optimally--;
@@ -473,7 +473,7 @@ public class Patch
 					for (int th = 0; th < handPile.Cards.Count && num_to_discard > 0; th++)
 					{
 						CardModel card = handPile.Cards[th];
-						if (card.Type > CardType.Power)
+						if (card.Type > CardType.Power || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
 						{
 							selected.Add(card);
 							num_to_discard--;
