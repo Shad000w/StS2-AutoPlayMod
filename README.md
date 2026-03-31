@@ -40,12 +40,12 @@ If you choose required amount of cards the selection will end automatically, so 
 - player has less or the exact amount of playable cards than we are asked to retain, note that already Retain cards are not considered
 - all remaining cards in hand are identical
 
-### 8. Any other card selection also selects cards automatically if:
+### 9. Any other card selection also selects cards automatically if:
 - all cards in selection are equal
 
 This type of selection is triggered from various cards for various purposes so there is no other condition to use and in this exact case (unlike discard) game selects automatically if the number of cards in selection is same or lesser than required amount.
 
-### 9. Players can select a hard-target when fighting against multiplies to automatically route offensive cards against him.
+### 10. Players can select a hard-target when fighting against multiplies to automatically route offensive cards against him.
 
 To do it simply left-click on the chosen enemy. Then a targetting frame will show up around him and all offensive cards will be played automatically against that enemy.
 
