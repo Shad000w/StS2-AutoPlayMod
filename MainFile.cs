@@ -142,7 +142,7 @@ public class Patch
     [HarmonyPatch(typeof(NPotionHolder), "OnRelease")]
     private static bool OnPotionClicked(NPotionHolder __instance)
     {
-        if (__instance?.Potion?.Model.Owner.Creature.CombatState == null) return true;
+        if (__instance?.Potion?.Model.Owner.Creature.CombatState == null || CombatManager.Instance.IsOverOrEnding) return true;
 
         var isUsable_field = AccessTools.Field(typeof(NPotionHolder), "_isUsable");
 
