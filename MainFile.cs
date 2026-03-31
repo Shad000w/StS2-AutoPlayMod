@@ -321,7 +321,7 @@ public class Patch
 		{
 			foreach (CardModel item in handPile.Cards)
 			{
-				if (item.Type <= CardType.Power && !item.Keywords.Contains(CardKeyword.Retain))
+				if ((item.Type <= CardType.Power || item.Id.Entry == "FRANTIC_ESCAPE") && !item.Keywords.Contains(CardKeyword.Retain))
 				{
 					item.GiveSingleTurnRetain();
 				}
@@ -348,7 +348,7 @@ public class Patch
 		for (int th = 0; th < handPile.Cards.Count && num_to_retain > 0; th++)
 		{
 			CardModel card = handPile.Cards[th];
-			if (card.Type <= CardType.Power && !card.Keywords.Contains(CardKeyword.Retain))
+			if ((card.Type <= CardType.Power || card.Id.Entry == "FRANTIC_ESCAPE") && !card.Keywords.Contains(CardKeyword.Retain))
 			{
 				card.GiveSingleTurnRetain();
 				num_to_retain--;
