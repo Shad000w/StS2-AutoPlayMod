@@ -585,7 +585,11 @@ public class Patch
 	{
 		if (player.Creature.CombatState == null) return;
 
-		int num_enemies_survive_this_turn = 0, num_enemies_intends_attack = 0, minimum_enemy_hitpoints = 999;
+		var combatState = CombatManager.Instance.DebugOnlyGetState();
+		if (combatState == null) return;
+
+		var playerCreatures = combatState.PlayerCreatures;
+		int num_enemies_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_enemy_damage = 0, minimum_enemy_hitpoints = 999;
 
 		IReadOnlyList<Creature> enemies = player.Creature.CombatState.Enemies;
 		for (int th = 0; th < enemies.Count; th++)
@@ -600,6 +604,17 @@ public class Patch
 				if (enemy.Monster?.IntendsToAttack == true)
 				{
 					num_enemies_intends_attack++;
+					if (enemy.GetPowerAmount<WeakPower>() > 0)
+					{
+						num_weak_enemies++;
+					}
+					foreach (var intent in enemy.Monster.NextMove.Intents)
+					{
+						if (intent is AttackIntent attackIntent)
+						{
+							num_enemy_damage += attackIntent.GetTotalDamage(playerCreatures, owner: enemy);
+						}
+					}
 				}
 				int hp_after_poison = enemy.CurrentHp - damage_from_poison - enemy.GetPowerAmount<PlowPower>() + enemy.Block;
 				if (hp_after_poison < minimum_enemy_hitpoints)
@@ -708,11 +723,15 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (num_enemies_intends_attack == 0 && (another_potion.DynamicVars.ContainsKey("WeakPowername") || another_potion.DynamicVars.ContainsKey("DamageDecrease")))//if no enemy intends to attack, then potions that weakens enemy are useless
+			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0 || num_weak_enemies == num_enemies_intends_attack) && another_potion.DynamicVars.ContainsKey("WeakPowername"))//if no enemy intends to attack, then potions that weakens enemy are useless
 			{
 				//ignore
 			}
-			else if (num_enemies_intends_attack == 0 && (another_potion.TargetType == TargetType.AllEnemies || another_potion.TargetType == TargetType.AnyEnemy || another_potion.TargetType == TargetType.RandomEnemy) && another_potion.DynamicVars.ContainsKey("StrengthPower"))//if no enemy intends to attack, then potions that reduces enemy Strength are useless
+			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0) && another_potion.DynamicVars.ContainsKey("DamageDecrease"))//if no enemy intends to attack, then potions that weakens enemy are useless
+			{
+				//ignore
+			}
+			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0) && (another_potion.TargetType == TargetType.AllEnemies || another_potion.TargetType == TargetType.AnyEnemy || another_potion.TargetType == TargetType.RandomEnemy) && another_potion.DynamicVars.ContainsKey("StrengthPower"))//if no enemy intends to attack, then potions that reduces enemy Strength are useless
 			{
 				//ignore
 			}
