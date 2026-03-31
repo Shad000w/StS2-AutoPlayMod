@@ -228,13 +228,20 @@ public class Patch
 		return false;
 	}
 
-	[HarmonyPatch(typeof(Hook), nameof(Hook.AfterCardPlayed))]
+	[HarmonyPatch(typeof(CardModel), nameof(CardModel.OnPlayWrapper))]
 	[HarmonyPostfix]
-	private static void AfterCardPlayed(CardPlay cardPlay)
+	private static void AfterCardPlayed(CardModel __instance, PlayerChoiceContext choiceContext, Creature? target, bool isAutoPlay, ResourceInfo resources, bool skipCardPileVisuals, ref Task __result)
 	{
+		__result = AfterCardPlayedFinished(__result, __instance, choiceContext, target, isAutoPlay, resources, skipCardPileVisuals);
+	}
+
+	private static async Task AfterCardPlayedFinished(Task originalTask,CardModel __instance,PlayerChoiceContext choiceContext,Creature? target,bool isAutoPlay,ResourceInfo resources,bool skipCardPileVisuals)
+	{
+		await originalTask;
+
 		if (CombatManager.Instance.IsPlayPhase)
 		{
-			AutomaticEndTurn(cardPlay.Card.Owner);
+			AutomaticEndTurn(__instance.Owner);
 		}
 	}
 
