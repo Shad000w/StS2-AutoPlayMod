@@ -4,9 +4,9 @@ This modification attempts to remove all extra steps when there is no reason to 
 
 ## Features
 
-### 1. Attack cards are played automatically when there is just one enemy. 
+### 1. Attack cards are played automatically when there is just one enemy.
 
-Additionally, when the attack card is hovered and only one enemy remains, it will show updated damage value as if you would drag the card on top of the enemy in vanilla without clicking.
+Additionally, when the attack card is hovered and only one enemy remains (or player selected hard-target), it will show updated damage value as if you would drag the card on top of the enemy in vanilla without clicking.
 
 ### 2. Offensive potions are thrown automatically when there is just one enemy.
 
@@ -23,21 +23,33 @@ With exception of Foul Potion where player still gets the default choice between
 
 If you choose required amount of cards the selection will end automatically, so make up your mind before you click!
 
-### 6. Cards are selected automatically if player is asked to discard during combat if:
+### 6. Cards are selected automatically if player is asked to **discard** during combat if:
 - the number of cards in hand is same or less than amount to discard
-- there is exactly the same amount of sly+unplayable cards in player's hand as the amount to discard
-- number of sly+unplayable cards in players's hand is greater than amount to discard, but they are identical
+- there is exactly the same amount of sly+ethereal+unplayable cards in player's hand as the amount to discard, note that unplayable cards (ie. statuses, curses, quests) are considered only when there is no card that exhaust that player can play
+- number of sly+ethereal+unplayable cards in players's hand is greater than amount to discard, but they are identical
 - all remaining cards in hand are identical
 
-### 7. Before Flush Late retain selection selects cards automatically if:
-- player has no playable cards (in this case it selects nothing, this is allowed to do in vanilla)
-- player has less or the exact amount of playable cards than we are asked to retain
+### 7. Cards are selected automatically if player is asked to **exhaust** during combat if:
+- the number of cards in hand is same or less than amount that we must exhaust
+- there is exactly the same amount of ethereal+unplayable cards in player's hand as the amount we must exhaust, note that only Ethereal cards that player cannot play are considered (as such cards would be exhausted automatically)
+- number of ethereal+unplayable cards in players's hand is greater than amount to discard, but they are identical
 - all remaining cards in hand are identical
 
-### 8. Any other card selection during combat also selects cards automaically if:
+### 8. Well Laid Plans every round retain selection selects cards automatically if:
+- player has no playable cards, that aren't status/curse (except Frantic Escape) in hand (in this case it selects nothing, this is allowed to do in vanilla)
+- player has less or the exact amount of playable cards than we are asked to retain, note that already Retain cards are not considered
+- all remaining cards in hand are identical
+
+### 8. Any other card selection also selects cards automatically if:
 - all cards in selection are equal
 
 This type of selection is triggered from various cards for various purposes so there is no other condition to use and in this exact case (unlike discard) game selects automatically if the number of cards in selection is same or lesser than required amount.
+
+### 9. Players can select a hard-target when fighting against multiplies to automatically route offensive cards against him.
+
+To do it simply left-click on the chosen enemy. Then a targetting frame will show up around him and all offensive cards will be played automatically against that enemy.
+
+Click again to reset or click at different enemy to change it.
 
 ## Disclaimer ##
 
