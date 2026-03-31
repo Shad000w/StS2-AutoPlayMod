@@ -308,15 +308,16 @@ public class Patch
 		[HarmonyPrefix]
 		private static bool Prefix(NPlayerHand __instance, CardSelectorPrefs prefs, Func<CardModel, bool> filter, AbstractModel source, NPlayerHand.Mode mode, ref Task<IEnumerable<CardModel>> __result)
 		{
-			if (!ModState.IsDiscardTypeOfSelect && !ModSettings.AutomaticSelect) return true;
-			if (ModState.IsDiscardTypeOfSelect && !ModSettings.AutomaticDiscard) return true;
-			if (ModState.CurrentPlayer == null) return true;
+			bool IsDiscardTypeOfSelect = prefs.Prompt.LocEntryKey == "TO_DISCARD";
+			if (!IsDiscardTypeOfSelect && !ModSettings.AutomaticSelect) return true;
+			else if (IsDiscardTypeOfSelect && !ModSettings.AutomaticDiscard) return true;
+			else if (ModState.CurrentPlayer == null) return true;
 
 			CardPile handPile = PileType.Hand.GetPile(ModState.CurrentPlayer);
 
 			if (handPile.Cards.Count == 0) return true;//if we have no cards, game already selects nothing by default, so we can leave it to original function
 			else if (prefs.MaxSelect == 999999999) return true;//Gambler's Brew potion
-			else if (prefs.RequireManualConfirmation || (!ModState.IsDiscardTypeOfSelect && prefs.MinSelect == 0)) return true;
+			else if (prefs.RequireManualConfirmation || (!IsDiscardTypeOfSelect && prefs.MinSelect == 0)) return true;
 
 			var selected = new List<CardModel> { };
 
@@ -327,7 +328,7 @@ public class Patch
 					selected.Add(handPile.Cards[th]);
 				}
 			}
-			else if (ModState.IsDiscardTypeOfSelect)//discard selection
+			else if (IsDiscardTypeOfSelect)//discard selection
 			{
 				CardModel? first_optimal_card__to_discard = null;
 				bool all_cards_to_discard_optimally_identical = true;
@@ -438,20 +439,6 @@ public class Patch
 	private static void FromHand(PlayerChoiceContext context, Player player, CardSelectorPrefs prefs, Func<CardModel, bool>? filter, AbstractModel source)
 	{
 		ModState.CurrentPlayer = player;
-	}
-
-	[HarmonyPatch(typeof(CardSelectCmd), nameof(CardSelectCmd.FromHandForDiscard))]
-	[HarmonyPrefix]
-	private static void BeforeFromHandForDiscard(PlayerChoiceContext context, Player player, CardSelectorPrefs prefs, Func<CardModel, bool>? filter, AbstractModel source)
-	{
-		ModState.IsDiscardTypeOfSelect = true;
-	}
-
-	[HarmonyPatch(typeof(CardSelectCmd), nameof(CardSelectCmd.FromHandForDiscard))]
-	[HarmonyPostfix]
-	private static void AfterFromHandForDiscard(PlayerChoiceContext context, Player player, CardSelectorPrefs prefs, Func<CardModel, bool>? filter, AbstractModel source)
-	{
-		ModState.IsDiscardTypeOfSelect = false;
 	}
 
 	[HarmonyPatch(typeof(CardSelectCmd), nameof(CardSelectCmd.FromSimpleGrid))]
@@ -743,6 +730,5 @@ public class Patch
 	public static class ModState
 	{
 		public static Player? CurrentPlayer;
-		public static bool IsDiscardTypeOfSelect = false;
 	}
 }
