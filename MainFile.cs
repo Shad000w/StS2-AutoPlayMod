@@ -22,6 +22,7 @@ using System;
 using System.Numerics;
 using System.Reflection;
 using System.Text.Json;
+using static Godot.Projection;
 using Logger = MegaCrit.Sts2.Core.Logging.Logger;
 
 namespace AutoPlay;
@@ -344,7 +345,7 @@ public class Patch
 			{
 				CardModel? first_optimal_card__to_discard = null;
 				bool all_cards_to_discard_optimally_identical = true;
-				int num_sly_cards = 0, num_unplayable_cards = 0, num_playable_cards_with_exhaust_power = 0;
+				int num_sly_cards = 0, num_ethereal_cards_that_cannot_be_played = 0, num_unplayable_cards = 0, num_playable_cards_with_exhaust_power = 0;
 				for (int th = 0; th < handPile.Cards.Count; th++)
 				{
 					CardModel card = handPile.Cards[th];
@@ -366,13 +367,25 @@ public class Patch
 							all_cards_to_discard_optimally_identical = false;
 						}
 					}
-					else if ((card.Id.Entry == "BRAND" || card.Id.Entry == "BURNING_PACT" || card.Id.Entry == "SCAVENGE" || card.Id.Entry == "FLAK_CANNON" || card.Id.Entry == "SECOND_WIND" || card.Id.Entry == "PURITY") && card.CanPlay())
+					else
 					{
-						num_playable_cards_with_exhaust_power++;
+						if ((card.Id.Entry == "BRAND" || card.Id.Entry == "BURNING_PACT" || card.Id.Entry == "SCAVENGE" || card.Id.Entry == "FLAK_CANNON" || card.Id.Entry == "SECOND_WIND" || card.Id.Entry == "PURITY") && card.CanPlay())
+						{
+							num_playable_cards_with_exhaust_power++;
+						}
+						else if(card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay())
+						{
+							num_ethereal_cards_that_cannot_be_played++;
+							if (first_optimal_card__to_discard == null) first_optimal_card__to_discard = card;
+							else if (!CardsEqual(first_optimal_card__to_discard, card))
+							{
+								all_cards_to_discard_optimally_identical = false;
+							}
+						}
 					}
 				}
 
-				int num_cards_to_discard_optimally = num_sly_cards;
+				int num_cards_to_discard_optimally = num_sly_cards + num_ethereal_cards_that_cannot_be_played;
 
 				if (num_playable_cards_with_exhaust_power == 0)//only consider unplayable cards if we can't exhaust them this round
 				{
@@ -385,7 +398,7 @@ public class Patch
 					for (int th = 0; th < handPile.Cards.Count && num_cards_to_discard_optimally > 0; th++)
 					{
 						CardModel card = handPile.Cards[th];
-						if (card.IsSlyThisTurn || (num_playable_cards_with_exhaust_power == 0 && card.Type > CardType.Power))
+						if (card.IsSlyThisTurn || (num_playable_cards_with_exhaust_power == 0 && card.Type > CardType.Power) || card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay())
 						{
 							selected.Add(card);
 							num_cards_to_discard_optimally--;
@@ -398,7 +411,7 @@ public class Patch
 					for (int th = 0; th < handPile.Cards.Count && num_to_discard > 0; th++)
 					{
 						CardModel card = handPile.Cards[th];
-						if (card.IsSlyThisTurn || (num_playable_cards_with_exhaust_power == 0 && card.Type > CardType.Power))
+						if (card.IsSlyThisTurn || (num_playable_cards_with_exhaust_power == 0 && card.Type > CardType.Power) || card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay())
 						{
 							selected.Add(card);
 							num_to_discard--;
