@@ -308,24 +308,26 @@ public class Patch
 		[HarmonyPrefix]
 		private static bool Prefix(NPlayerHand __instance, CardSelectorPrefs prefs, Func<CardModel, bool> filter, AbstractModel source, NPlayerHand.Mode mode, ref Task<IEnumerable<CardModel>> __result)
 		{
+			if (!ModState.IsDiscardTypeOfSelect && !ModSettings.AutomaticSelect) return true;
+			if (ModState.IsDiscardTypeOfSelect && !ModSettings.AutomaticDiscard) return true;
 			if (ModState.CurrentPlayer == null) return true;
 
 			CardPile handPile = PileType.Hand.GetPile(ModState.CurrentPlayer);
 
 			if (handPile.Cards.Count == 0) return true;//if we have no cards, game already selects nothing by default, so we can leave it to original function
 			else if (prefs.MaxSelect == 999999999) return true;//Gambler's Brew potion
-			else if (prefs.RequireManualConfirmation || prefs.MinSelect == 0) return true;
+			else if (prefs.RequireManualConfirmation || (!ModState.IsDiscardTypeOfSelect && prefs.MinSelect == 0)) return true;
 
 			var selected = new List<CardModel> { };
 
-			if (handPile.Cards.Count <= prefs.MinSelect)
+			if (handPile.Cards.Count <= prefs.MinSelect)//if we have less cards than amount needed to select, select them automatically
 			{
 				for (int th = 0; th < handPile.Cards.Count; th++)
 				{
 					selected.Add(handPile.Cards[th]);
 				}
 			}
-			else
+			else if (ModSettings.AutomaticDiscard)//discard selection
 			{
 				CardModel? first_optimal_card__to_discard = null;
 				bool all_cards_to_discard_optimally_identical = true;
@@ -385,6 +387,22 @@ public class Patch
 					{
 						selected.Add(handPile.Cards[th]);
 					}
+				}
+			}
+			else//either retain or exhaust selection - only select automatically when all cards in hand are identical
+			{
+				CardModel first = handPile.Cards[0];
+				for (int th = 1; th < handPile.Cards.Count; th++)
+				{
+					if (!CardsEqual(first, handPile.Cards[th]))
+					{
+						return true;
+					}
+				}
+
+				for (int th = 0; th < prefs.MinSelect; th++)
+				{
+					selected.Add(handPile.Cards[th]);
 				}
 			}
 
