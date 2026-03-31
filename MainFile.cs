@@ -249,7 +249,10 @@ public class Patch
 	[HarmonyPostfix]
 	private static void AfterPotionDiscarded(PotionModel potion)
 	{
-		AutomaticEndTurn(potion.Owner);
+		if (CombatManager.Instance.IsPlayPhase)
+		{
+			AutomaticEndTurn(potion.Owner);
+		}
 	}
 
 	[HarmonyPatch(typeof(Creature), nameof(Creature.AfterTurnStart))]
