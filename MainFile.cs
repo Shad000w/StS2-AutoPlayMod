@@ -3,6 +3,7 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
@@ -13,17 +14,22 @@ using MegaCrit.Sts2.Core.Modding;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
+using MegaCrit.Sts2.Core.Nodes;
+using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Debug;
 using MegaCrit.Sts2.Core.Nodes.Potions;
+using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using System;
 using System.Numerics;
 using System.Reflection;
 using System.Text.Json;
+using static Godot.HttpRequest;
 using static Godot.Projection;
 using Logger = MegaCrit.Sts2.Core.Logging.Logger;
+using Vector2 = Godot.Vector2;
 
 namespace AutoPlay;
 
@@ -90,6 +96,113 @@ public partial class MainFile : Node
 [HarmonyPatch]
 public class Patch
 {
+	[HarmonyPatch(typeof(NCombatUi), "_Input")]
+	[HarmonyPostfix]
+	private static void GameInputHook(InputEvent inputEvent)
+	{
+		Vector2 position = Vector2.Zero;
+		switch (inputEvent)
+		{
+			case InputEventScreenTouch { Pressed: true } touch:
+				position = touch.Position;
+				break;
+			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } mb:
+				position = mb.Position;
+				break;
+			default:
+				break;
+		}
+
+		if(position != Vector2.Zero && ModState.HoveredEnemy != null)
+		{
+			if (ModState.DoNotHideReticle != true)
+			{
+				if (ModState.TargettedEnemy_NCreature != null)
+				{
+					ModState.TargettedEnemy_NCreature.HideSingleSelectReticle();
+				}
+				ModState.HoveredEnemy.ShowSingleSelectReticle();
+				ModState.DoNotHideReticle = true;
+				ModState.TargettedEnemy_NCreature = ModState.HoveredEnemy;
+				ModState.TargettedEnemy = ModState.HoveredEnemy.Entity;
+			}
+			else
+			{
+				ModState.DoNotHideReticle = false;
+				if (ModState.TargettedEnemy_NCreature != null)
+				{
+					ModState.TargettedEnemy_NCreature.HideSingleSelectReticle();
+				}
+				else
+				{
+					ModState.HoveredEnemy.HideSingleSelectReticle();
+				}
+				ModState.TargettedEnemy_NCreature = null;
+				ModState.TargettedEnemy = null;
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(NCreature), "OnFocus")]
+	[HarmonyPostfix]
+	private static void CreatureOnFocus(NCreature __instance)
+	{
+		if (__instance.Entity.IsMonster && !__instance.Entity.IsDead)
+		{
+			ModState.HoveredEnemy = __instance;
+		}
+	}
+
+	[HarmonyPatch(typeof(NCreature), "OnUnfocus")]
+	[HarmonyPrefix]
+	private static bool CreatureOnUnFocus(NCreature __instance)
+	{
+		var Entity = AccessTools.PropertyGetter(typeof(NCreature), "Entity")?.Invoke(__instance, null) as Creature;
+
+		if (Entity == null || Entity.IsPlayer || Entity.IsPet || Entity.IsDead) return true;
+
+		if (ModState.HoveredEnemy != null)
+		{
+			ModState.HoveredEnemy = null;
+		}
+
+		var field = AccessTools.Field(typeof(NCreature), "_stateDisplay");
+		var creatureStateDisplay = field?.GetValue(__instance) as NCreatureStateDisplay;
+
+		if (creatureStateDisplay == null) return true;
+
+		var setter = AccessTools.PropertySetter(typeof(NCreature), "IsFocused");
+		setter?.Invoke(__instance, new object[] { false });
+
+		if (!ModState.DoNotHideReticle)
+		{
+			__instance.HideSingleSelectReticle();
+		}
+
+		creatureStateDisplay.HideNameplate();
+
+		if(Entity.Player != null)
+		{
+			NRun.Instance?.GlobalUi.MultiplayerPlayerContainer.UnhighlightPlayer(Entity.Player);//this doesn't make sense to me since we know that Entity.IsPlayer == false
+		}
+		NTargetManager.Instance.OnNodeUnhovered(__instance);
+		var method = AccessTools.Method(typeof(NCreature), "ShowCreatureHoverTips");
+		if (method != null)
+		{
+			var handler = (Action<CombatState>)Delegate.CreateDelegate(typeof(Action<CombatState>), __instance, method);
+			CombatManager.Instance.StateTracker.CombatStateChanged -= handler;
+		}
+		__instance.HideHoverTips();
+		return false;
+	}
+
+	[HarmonyPatch(typeof(NCreature), nameof(NCreature.HideSingleSelectReticle))]
+	[HarmonyPrefix]
+	private static bool HideSingleSelectReticle(NCreature __instance)
+	{
+		return !ModState.DoNotHideReticle;
+	}
+
 	[HarmonyPrefix]
 	[HarmonyPatch(typeof(NMouseCardPlay), "TargetSelection")]
 	private static bool TargetSelection(NMouseCardPlay __instance, TargetMode targetMode, ref Task __result)
@@ -103,6 +216,11 @@ public class Patch
 		{
 			var target = card.CombatState?.HittableEnemies[0];
 			if (target is null) return true;
+			else if(ModState.TargettedEnemy != null && !ModState.TargettedEnemy.IsDead)
+			{
+				target = ModState.TargettedEnemy;
+			}
+
 			AccessTools.Field(typeof(NMouseCardPlay), "_target").SetValue(__instance, target);
 		}
 
@@ -134,6 +252,10 @@ public class Patch
 		{
 			var target = __instance.CardModel?.CombatState?.HittableEnemies[0];
 			if (target is null) return;
+			else if (ModState.TargettedEnemy != null && !ModState.TargettedEnemy.IsDead)
+			{
+				target = ModState.TargettedEnemy;
+			}
 
 			__instance.CardNode?.SetPreviewTarget(target);
 		}
@@ -174,6 +296,10 @@ public class Patch
 
 		var target = potion.Owner.Creature.CombatState?.HittableEnemies[0];
 		if (target is null) return true;
+		else if (ModState.TargettedEnemy != null && !ModState.TargettedEnemy.IsDead)
+		{
+			target = ModState.TargettedEnemy;
+		}
 
 		potion.EnqueueManualUse(target);
 
@@ -814,7 +940,7 @@ public class Patch
 		return card.TargetType switch
 		{
 			TargetType.None or TargetType.Self or TargetType.AllEnemies or TargetType.RandomEnemy => true,
-			TargetType.AnyEnemy => card.CombatState.HittableEnemies.Count == 1,
+			TargetType.AnyEnemy => card.CombatState.HittableEnemies.Count == 1 || (ModState.TargettedEnemy != null && !ModState.TargettedEnemy.IsDead),
 			_ => false
 		};
 	}
@@ -826,7 +952,7 @@ public class Patch
 		return potion.TargetType switch
 		{
 			TargetType.None or TargetType.Self or TargetType.AllEnemies or TargetType.RandomEnemy => true,
-			TargetType.AnyEnemy => potion.Owner.Creature.CombatState.HittableEnemies.Count == 1,
+			TargetType.AnyEnemy => potion.Owner.Creature.CombatState.HittableEnemies.Count == 1 || (ModState.TargettedEnemy != null && !ModState.TargettedEnemy.IsDead),
 			_ => false
 		};
 	}
@@ -861,5 +987,9 @@ public class Patch
 	public static class ModState
 	{
 		public static Player? CurrentPlayer;
+		public static NCreature? HoveredEnemy;
+		public static NCreature? TargettedEnemy_NCreature;
+		public static Creature? TargettedEnemy;
+		public static bool DoNotHideReticle;
 	}
 }
