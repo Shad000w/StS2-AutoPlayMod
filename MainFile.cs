@@ -21,9 +21,23 @@ using MegaCrit.Sts2.Core.Runs;
 using System;
 using System.Numerics;
 using System.Reflection;
+using System.Text.Json;
 using Logger = MegaCrit.Sts2.Core.Logging.Logger;
 
 namespace AutoPlay;
+
+public static class ModSettings
+{
+	public static bool AutomaticDiscard { get; set; } = false;
+	public static bool AutomaticSelect { get; set; } = false;
+	public static bool AutomaticRetain { get; set; } = false;
+}
+public class AutoPlayConfigData
+{
+	public bool AutomaticDiscard { get; set; }
+	public bool AutomaticSelect { get; set; }
+	public bool AutomaticRetain { get; set; }
+}
 
 [ModInitializer(nameof(Initialize))]
 public partial class MainFile : Node
@@ -36,6 +50,19 @@ public partial class MainFile : Node
 	{
 		Harmony harmony = new(ModId);
 		harmony.PatchAll();
+
+		if (File.Exists("mods/AutoPlay.json"))
+		{
+			var json = File.ReadAllText("mods/AutoPlay.json");
+			var data = JsonSerializer.Deserialize<AutoPlayConfigData>(json);
+
+			if (data != null)
+			{
+				ModSettings.AutomaticDiscard = data.AutomaticDiscard;
+				ModSettings.AutomaticSelect = data.AutomaticSelect;
+				ModSettings.AutomaticRetain = data.AutomaticRetain;
+			}
+		}
 		Log("Initialized");
 	}
 
