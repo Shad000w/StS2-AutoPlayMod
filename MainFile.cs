@@ -129,36 +129,36 @@ public class Patch
 	[HarmonyPostfix]
 	private static void CardOnFocus(NHandCardHolder __instance)
 	{
-		if(IsAutoPlayable(__instance.CardModel))
+		if (IsAutoPlayable(__instance.CardModel))
 		{
 			var target = __instance.CardModel?.CombatState?.HittableEnemies[0];
 			if (target is null) return;
 
 			__instance.CardNode?.SetPreviewTarget(target);
-		}        
+		}
 	}
 
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(NPotionHolder), "OnRelease")]
-    private static bool OnPotionClicked(NPotionHolder __instance)
-    {
-        if (__instance?.Potion?.Model.Owner.Creature.CombatState == null || CombatManager.Instance.IsOverOrEnding) return true;
+	[HarmonyPrefix]
+	[HarmonyPatch(typeof(NPotionHolder), "OnRelease")]
+	private static bool OnPotionClicked(NPotionHolder __instance)
+	{
+		if (__instance?.Potion?.Model.Owner.Creature.CombatState == null || CombatManager.Instance.IsOverOrEnding) return true;
 
-        var isUsable_field = AccessTools.Field(typeof(NPotionHolder), "_isUsable");
+		var isUsable_field = AccessTools.Field(typeof(NPotionHolder), "_isUsable");
 
-        var isUsable_value = isUsable_field.GetValue(__instance);
+		var isUsable_value = isUsable_field.GetValue(__instance);
 
-        if (isUsable_value == null || (bool)isUsable_value == false) return true;
+		if (isUsable_value == null || (bool)isUsable_value == false) return true;
 
-        if (__instance.Potion.Model.Title.GetRawText() != "Foul Potion")//automatically use every potion except Foul Potion when clicked at them in combat since there is no reason to discard
-        {
-            __instance.UsePotion();
-            return false;
-        }
-        return true;
-    }
+		if (__instance.Potion.Model.Title.GetRawText() != "Foul Potion")//automatically use every potion except Foul Potion when clicked at them in combat since there is no reason to discard
+		{
+			__instance.UsePotion();
+			return false;
+		}
+		return true;
+	}
 
-    [HarmonyPrefix]
+	[HarmonyPrefix]
 	[HarmonyPatch(typeof(NPotionHolder), "UsePotion")]
 	private static bool UsePotion(NPotionHolder __instance, ref Task __result)
 	{
@@ -235,24 +235,24 @@ public class Patch
 		if (CombatManager.Instance.IsPlayPhase)
 		{
 			AutomaticEndTurn(cardPlay.Card.Owner);
-		}			
-    }
+		}
+	}
 
-    [HarmonyPatch(typeof(Hook), nameof(Hook.AfterPotionUsed))]
-    [HarmonyPostfix]
-    private static void AfterPotionUsed(PotionModel potion) 
+	[HarmonyPatch(typeof(Hook), nameof(Hook.AfterPotionUsed))]
+	[HarmonyPostfix]
+	private static void AfterPotionUsed(PotionModel potion)
 	{
-        AutomaticEndTurn(potion.Owner);
-    }
+		AutomaticEndTurn(potion.Owner);
+	}
 
-    [HarmonyPatch(typeof(Hook), nameof(Hook.AfterPotionDiscarded))]
-    [HarmonyPostfix]
-    private static void AfterPotionDiscarded(PotionModel potion)
-    {
-        AutomaticEndTurn(potion.Owner);
-    }
+	[HarmonyPatch(typeof(Hook), nameof(Hook.AfterPotionDiscarded))]
+	[HarmonyPostfix]
+	private static void AfterPotionDiscarded(PotionModel potion)
+	{
+		AutomaticEndTurn(potion.Owner);
+	}
 
-    [HarmonyPatch(typeof(Creature), nameof(Creature.AfterTurnStart))]
+	[HarmonyPatch(typeof(Creature), nameof(Creature.AfterTurnStart))]
 	[HarmonyPostfix]
 	private static void AfterTurnStart(Creature __instance, int roundNumber, CombatSide side)
 	{
@@ -282,7 +282,7 @@ public class Patch
 				for (int th = 0; th < handPile.Cards.Count; th++)
 				{
 					CardModel card = handPile.Cards[th];
-					if(card.Id.Entry == "FEED")
+					if (card.Id.Entry == "FEED")
 					{
 						has_feed_card = true;
 					}
@@ -342,12 +342,12 @@ public class Patch
 					{
 						num_sly_cards++;
 						if (first_optimal_card__to_discard == null) first_optimal_card__to_discard = card;
-						else if(!CardsEqual(first_optimal_card__to_discard, card))
+						else if (!CardsEqual(first_optimal_card__to_discard, card))
 						{
 							all_cards_to_discard_optimally_identical = false;
 						}
 					}
-					else if(card.Type > CardType.Power)
+					else if (card.Type > CardType.Power)
 					{
 						num_unplayable_cards++;
 						if (first_optimal_card__to_discard == null) first_optimal_card__to_discard = card;
@@ -382,7 +382,7 @@ public class Patch
 						}
 					}
 				}
-				else if(num_cards_to_discard_optimally > prefs.MinSelect && all_cards_to_discard_optimally_identical)//if all optimally discardable cards are same, discard required amount automatically
+				else if (num_cards_to_discard_optimally > prefs.MinSelect && all_cards_to_discard_optimally_identical)//if all optimally discardable cards are same, discard required amount automatically
 				{
 					int num_to_discard = prefs.MinSelect;
 					for (int th = 0; th < handPile.Cards.Count && num_to_discard > 0; th++)
@@ -551,7 +551,7 @@ public class Patch
 		var selected = new List<CardModel> { };
 		for (int th = 0; th < prefs.MinSelect; th++)
 		{
-		selected.Add(cards[th]);
+			selected.Add(cards[th]);
 		}
 
 		__result = Task.FromResult<IEnumerable<CardModel>>(selected);
@@ -562,207 +562,204 @@ public class Patch
 	{
 		if (player.Creature.CombatState == null) return;
 
-        int num_enemies_survive_this_turn = 0, num_enemies_intends_attack = 0, minimum_enemy_hitpoints = 999;
+		int num_enemies_survive_this_turn = 0, num_enemies_intends_attack = 0, minimum_enemy_hitpoints = 999;
 
-        IReadOnlyList<Creature> enemies = player.Creature.CombatState.Enemies;
-        for (int th = 0; th < enemies.Count; th++)
-        {
-            Creature enemy = enemies[th];
-            int damage_from_poison = (enemy.GetPower<PoisonPower>()?.CalculateTotalDamageNextTurn() ?? 0);
+		IReadOnlyList<Creature> enemies = player.Creature.CombatState.Enemies;
+		for (int th = 0; th < enemies.Count; th++)
+		{
+			Creature enemy = enemies[th];
+			int damage_from_poison = (enemy.GetPower<PoisonPower>()?.CalculateTotalDamageNextTurn() ?? 0);
 
-            if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<AdaptablePower>() > 0 || damage_from_poison < enemy.CurrentHp))
-            {
-                num_enemies_survive_this_turn++;
+			if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<AdaptablePower>() > 0 || damage_from_poison < enemy.CurrentHp))
+			{
+				num_enemies_survive_this_turn++;
 
-                if (enemy.Monster?.IntendsToAttack == true)
-                {
-                    num_enemies_intends_attack++;
-                }
-                int hp_after_poison = enemy.CurrentHp - damage_from_poison - enemy.GetPowerAmount<PlowPower>() + enemy.Block;
-                if (hp_after_poison < minimum_enemy_hitpoints)
-                {
-                    minimum_enemy_hitpoints = hp_after_poison;
-                }
-            }
-        }
+				if (enemy.Monster?.IntendsToAttack == true)
+				{
+					num_enemies_intends_attack++;
+				}
+				int hp_after_poison = enemy.CurrentHp - damage_from_poison - enemy.GetPowerAmount<PlowPower>() + enemy.Block;
+				if (hp_after_poison < minimum_enemy_hitpoints)
+				{
+					minimum_enemy_hitpoints = hp_after_poison;
+				}
+			}
+		}
 
-        CardPile handPile = PileType.Hand.GetPile(player);
+		CardPile handPile = PileType.Hand.GetPile(player);
 
-        if (num_enemies_survive_this_turn == 0)//no enemies will survive after this card was played
-        {
-            int num_damage_received_from_cards = 0;
-            bool has_feed_card = false;
+		if (num_enemies_survive_this_turn == 0)//no enemies will survive after this card was played
+		{
+			int num_damage_received_from_cards = 0;
+			bool has_feed_card = false;
 
-            for (int th = 0; th < handPile.Cards.Count; th++)
-            {
-                CardModel card = handPile.Cards[th];
-                if (card.Title == "Feed")
-                {
-                    has_feed_card = true;
-                }
-                else if (card.Type > CardType.Power)
-                {
-                    num_damage_received_from_cards += card.DynamicVars.Damage.IntValue;
-                }
-            }
+			for (int th = 0; th < handPile.Cards.Count; th++)
+			{
+				CardModel card = handPile.Cards[th];
+				if (card.Title == "Feed")
+				{
+					has_feed_card = true;
+				}
+				else if (card.Type > CardType.Power)
+				{
+					num_damage_received_from_cards += card.DynamicVars.Damage.IntValue;
+				}
+			}
 
-            if (has_feed_card == false && num_damage_received_from_cards <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
-            {
-                //we either have no damage debuffs or we can block them so no reason to play this round further
-                PlayerCmd.EndTurn(player, true);
-                return;
-            }
-        }
+			if (has_feed_card == false && num_damage_received_from_cards <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
+			{
+				//we either have no damage debuffs or we can block them so no reason to play this round further
+				PlayerCmd.EndTurn(player, true);
+				return;
+			}
+		}
 
-        int num_playable_cards = 0, num_upgradable_cards = 0, num_cards_using_energy = 0, num_cards_using_stars = 0, minimum_energy_needed_to_play_card = 99, minimum_stars_needed_to_play_card = 99;
+		int num_playable_cards = 0, num_upgradable_cards = 0, num_cards_using_energy = 0, num_cards_using_stars = 0, minimum_energy_needed_to_play_card = 99, minimum_stars_needed_to_play_card = 99;
 
-        for (int th = 0; th < handPile.Cards.Count; th++)
-        {
-            CardModel card = handPile.Cards[th];
-            int card_star_cost = card.GetStarCostWithModifiers();
-            int card_energy_cost = card.EnergyCost.GetWithModifiers(CostModifiers.All);
-            //Log.Info(th + ". card: " + card.Title + " card_type: " + card.Type + " card_star_cost: " + card_star_cost + ", card_energy_cost: " + card_energy_cost);
+		for (int th = 0; th < handPile.Cards.Count; th++)
+		{
+			CardModel card = handPile.Cards[th];
+			int card_star_cost = card.GetStarCostWithModifiers();
+			int card_energy_cost = card.EnergyCost.GetWithModifiers(CostModifiers.All);
+			//Log.Info(th + ". card: " + card.Title + " card_type: " + card.Type + " card_star_cost: " + card_star_cost + ", card_energy_cost: " + card_energy_cost);
 
-            if (card.CanPlay(out UnplayableReason reason, preventer : out _))
-            {
-                return;
-            }
-            else if (card.Type <= CardType.Power)
-            {
-                num_playable_cards++;
-            }
-            if(card.IsUpgradable)
-            {
-                num_upgradable_cards++;
-            }
-            if (card_energy_cost > 0 && reason == UnplayableReason.EnergyCostTooHigh)
-            {
-                num_cards_using_energy++;
-                if (card_energy_cost < minimum_energy_needed_to_play_card)
-                {
-                    minimum_energy_needed_to_play_card = card_energy_cost;
-                }
-            }
-            if (card_star_cost > 0 && reason == UnplayableReason.StarCostTooHigh)
-            {
-                num_cards_using_stars++;
-                if (card_star_cost < minimum_stars_needed_to_play_card)
-                {
-                    minimum_stars_needed_to_play_card = card_star_cost;
-                }
-            }
-        }
+			if (card.CanPlay(out UnplayableReason reason, preventer: out _))
+			{
+				return;
+			}
+			else if (card.Type <= CardType.Power)
+			{
+				num_playable_cards++;
+			}
+			if (card.IsUpgradable)
+			{
+				num_upgradable_cards++;
+			}
+			if (card_energy_cost > 0 && reason == UnplayableReason.EnergyCostTooHigh)
+			{
+				num_cards_using_energy++;
+				if (card_energy_cost < minimum_energy_needed_to_play_card)
+				{
+					minimum_energy_needed_to_play_card = card_energy_cost;
+				}
+			}
+			if (card_star_cost > 0 && reason == UnplayableReason.StarCostTooHigh)
+			{
+				num_cards_using_stars++;
+				if (card_star_cost < minimum_stars_needed_to_play_card)
+				{
+					minimum_stars_needed_to_play_card = card_star_cost;
+				}
+			}
+		}
 
-        CardPile drawPile = PileType.Draw.GetPile(player);
-        CardPile discardPile = PileType.Discard.GetPile(player);
-        int total_damage_from_potions = 0;
+		CardPile drawPile = PileType.Draw.GetPile(player);
+		CardPile discardPile = PileType.Discard.GetPile(player);
+		int total_damage_from_potions = 0;
 
-        //if we got here, we have no cards to play or no energy to play them
-        foreach (PotionModel another_potion in player.Potions)
-        {
+		//if we got here, we have no cards to play or no energy to play them
+		foreach (PotionModel another_potion in player.Potions)
+		{
 			string id = another_potion.Id.Entry;
-            if (id == "GIGANTIFICATION_POTION" || id == "SOLDIERS_STEW" || id == "ATTACK_POTION")//if we have no playable attack cards in hand, then potions that improve attack cards are useless
-            {
-                //ignore
-            }
-            else if (another_potion.TargetType == TargetType.AnyPlayer && (another_potion.DynamicVars.ContainsKey("StrengthPower") || another_potion.DynamicVars.ContainsKey("DexterityPower")))//if we can't play any card, then potions that adds Strength or Dexterity are useless
-            {
-                //ignore
-            }
-            else if (another_potion.DynamicVars.ContainsKey("VulnerablePower"))//if we can't play any card, then potions that adds Vulnerability are useless
-            {
-                //ignore
-            }
-            else if (another_potion.DynamicVars.ContainsKey("Forge"))//if we can't play any card, then potions that Forges are useless
-            {
-                //ignore
-            }
-            else if (player.Creature.Block <= 0 && id == "FORTIFIER")//if we have no block, then potions that multiply block are useless
-            {
-                //ignore
-            }
-            else if (num_enemies_intends_attack == 0 && (another_potion.DynamicVars.ContainsKey("Block") || another_potion.DynamicVars.ContainsKey("PlatingPower")))//if no enemy intends to attack, then potions that adds block or plating are useless
-            {
-                //ignore
-            }
-            else if (num_enemies_intends_attack == 0 && (another_potion.DynamicVars.ContainsKey("WeakPowername") || another_potion.DynamicVars.ContainsKey("DamageDecrease")))//if no enemy intends to attack, then potions that weakens enemy are useless
-            {
-                //ignore
-            }
-            else if (num_enemies_intends_attack == 0 && (another_potion.TargetType == TargetType.AllEnemies || another_potion.TargetType == TargetType.AnyEnemy || another_potion.TargetType == TargetType.RandomEnemy) && another_potion.DynamicVars.ContainsKey("StrengthPower"))//if no enemy intends to attack, then potions that reduces enemy Strength are useless
-            {
-                //ignore
-            }            
-            else if (player.Creature.CurrentHp >= player.Creature.MaxHp && (another_potion.DynamicVars.ContainsKey("MaxHp") || another_potion.DynamicVars.ContainsKey("HealPercent") || another_potion.DynamicVars.ContainsKey("RegenPower")))//if we have maximum HP, then potions that modify HPs are useless
-            {
-                //ignore
-            }
-            else if (another_potion.DynamicVars.ContainsKey("Energy") && minimum_energy_needed_to_play_card > another_potion.DynamicVars.Energy.IntValue)//if we have no cards in hand that uses energy or only cards with higher energy cost than we can get, then potions that gives us energy are useless
-            {
-                //ignore
-            }
-            else if (another_potion.DynamicVars.ContainsKey("Stars") && minimum_stars_needed_to_play_card > another_potion.DynamicVars.Stars.IntValue)//if we have no cards in hand that uses stars or only cards with higher stars cost than we can get, then potions that gives us stars are useless
-            {
-                //ignore
-            }
-            else if (handPile.Cards.Count == 0 && (id == "ASHWATER" || id == "BOTTLED_POTENTIAL" || id == "GAMBLERS_BREW"))//if we have no cards in hand, then potions that does something with cards in hand are useless
-            {
-                //ignore
-            }
-            else if (drawPile.Cards.Count == 0 && (id == "DISTILLED_CHAOS" || id == "DROPLET_OF_PRECOGNITION"))//if we have no cards in draw pile, then potions that plays cards from draw pile are useless
-            {
-                //ignore
-            }
-            else if (discardPile.Cards.Count == 0 && id == "LIQUID_MEMORIES")//if we have no cards in discard pile, then potions that plays cards from discard pile are useless
-            {
-                //ignore
-            }
-            else if (num_playable_cards == 0 && (id == "STABLE_SERUM" || id == "BLESSING_OF_THE_FORGE" || id == "DUPLICATOR"))//if we have no playable cards in hand, then potions that retains or improve cards in hand are useless
-            {
-                //ignore
-            }
-            else if(num_upgradable_cards == 0 && id == "BLESSING_OF_THE_FORGE")//if we have no upgradable cards in hand, then potions that upgrade cards are useless
-            {
-                //ignore
-            }
-            else if (another_potion.DynamicVars.ContainsKey("Damage"))//note: damage potions ignore vulnerable and plating
-            {
-                total_damage_from_potions += another_potion.DynamicVars.Damage.IntValue;
-            }
-            else
-            {
-                //NRun.Instance?.GlobalUi.TopBar.PotionContainer.AnimatePotion(another_potion);
-                return;//if we get here we have some potion that can still benefit us this turn
-            }
-        }
+			if (id == "GIGANTIFICATION_POTION" || id == "SOLDIERS_STEW" || id == "ATTACK_POTION")//if we have no playable attack cards in hand, then potions that improve attack cards are useless
+			{
+				//ignore
+			}
+			else if (another_potion.TargetType == TargetType.AnyPlayer && (another_potion.DynamicVars.ContainsKey("StrengthPower") || another_potion.DynamicVars.ContainsKey("DexterityPower")))//if we can't play any card, then potions that adds Strength or Dexterity are useless
+			{
+				//ignore
+			}
+			else if (another_potion.DynamicVars.ContainsKey("VulnerablePower"))//if we can't play any card, then potions that adds Vulnerability are useless
+			{
+				//ignore
+			}
+			else if (another_potion.DynamicVars.ContainsKey("Forge"))//if we can't play any card, then potions that Forges are useless
+			{
+				//ignore
+			}
+			else if (player.Creature.Block <= 0 && id == "FORTIFIER")//if we have no block, then potions that multiply block are useless
+			{
+				//ignore
+			}
+			else if (num_enemies_intends_attack == 0 && (another_potion.DynamicVars.ContainsKey("Block") || another_potion.DynamicVars.ContainsKey("PlatingPower")))//if no enemy intends to attack, then potions that adds block or plating are useless
+			{
+				//ignore
+			}
+			else if (num_enemies_intends_attack == 0 && (another_potion.DynamicVars.ContainsKey("WeakPowername") || another_potion.DynamicVars.ContainsKey("DamageDecrease")))//if no enemy intends to attack, then potions that weakens enemy are useless
+			{
+				//ignore
+			}
+			else if (num_enemies_intends_attack == 0 && (another_potion.TargetType == TargetType.AllEnemies || another_potion.TargetType == TargetType.AnyEnemy || another_potion.TargetType == TargetType.RandomEnemy) && another_potion.DynamicVars.ContainsKey("StrengthPower"))//if no enemy intends to attack, then potions that reduces enemy Strength are useless
+			{
+				//ignore
+			}
+			else if (player.Creature.CurrentHp >= player.Creature.MaxHp && (another_potion.DynamicVars.ContainsKey("MaxHp") || another_potion.DynamicVars.ContainsKey("HealPercent") || another_potion.DynamicVars.ContainsKey("RegenPower")))//if we have maximum HP, then potions that modify HPs are useless
+			{
+				//ignore
+			}
+			else if (another_potion.DynamicVars.ContainsKey("Energy") && minimum_energy_needed_to_play_card > another_potion.DynamicVars.Energy.IntValue)//if we have no cards in hand that uses energy or only cards with higher energy cost than we can get, then potions that gives us energy are useless
+			{
+				//ignore
+			}
+			else if (another_potion.DynamicVars.ContainsKey("Stars") && minimum_stars_needed_to_play_card > another_potion.DynamicVars.Stars.IntValue)//if we have no cards in hand that uses stars or only cards with higher stars cost than we can get, then potions that gives us stars are useless
+			{
+				//ignore
+			}
+			else if (handPile.Cards.Count == 0 && (id == "ASHWATER" || id == "BOTTLED_POTENTIAL" || id == "GAMBLERS_BREW"))//if we have no cards in hand, then potions that does something with cards in hand are useless
+			{
+				//ignore
+			}
+			else if (drawPile.Cards.Count == 0 && (id == "DISTILLED_CHAOS" || id == "DROPLET_OF_PRECOGNITION"))//if we have no cards in draw pile, then potions that plays cards from draw pile are useless
+			{
+				//ignore
+			}
+			else if (discardPile.Cards.Count == 0 && id == "LIQUID_MEMORIES")//if we have no cards in discard pile, then potions that plays cards from discard pile are useless
+			{
+				//ignore
+			}
+			else if (num_playable_cards == 0 && (id == "STABLE_SERUM" || id == "BLESSING_OF_THE_FORGE" || id == "DUPLICATOR"))//if we have no playable cards in hand, then potions that retains or improve cards in hand are useless
+			{
+				//ignore
+			}
+			else if (num_upgradable_cards == 0 && id == "BLESSING_OF_THE_FORGE")//if we have no upgradable cards in hand, then potions that upgrade cards are useless
+			{
+				//ignore
+			}
+			else if (another_potion.DynamicVars.ContainsKey("Damage"))//note: damage potions ignore vulnerable and plating
+			{
+				total_damage_from_potions += another_potion.DynamicVars.Damage.IntValue;
+			}
+			else
+			{
+				//NRun.Instance?.GlobalUi.TopBar.PotionContainer.AnimatePotion(another_potion);
+				return;//if we get here we have some potion that can still benefit us this turn
+			}
+		}
 
-        if (total_damage_from_potions > 0 && minimum_enemy_hitpoints <= total_damage_from_potions)//if we can't kill any enemy with our potions, then potions that deals damage are useless
-        {
+		if (total_damage_from_potions > 0 && minimum_enemy_hitpoints <= total_damage_from_potions)//if we can't kill any enemy with our potions, then potions that deals damage are useless
+		{
 			/*
-            foreach (PotionModel another_potion in player.Potions)
-            {
+			foreach (PotionModel another_potion in player.Potions)
+			{
 				if (another_potion.DynamicVars.ContainsKey("Damage"))
 				{
 					NPotionContainer? container = NRun.Instance?.GlobalUi.TopBar.PotionContainer;
-                    var holders = Traverse.Create(container)
-                        .Field<List<NPotionHolder>>("_holders")
-                        .Value;
+					var holders = Traverse.Create(container).Field<List<NPotionHolder>>("_holders").Value;
 
-                    var nPotionHolder = holders?.FirstOrDefault(n =>
-                        n.Potion != null && n.Potion.Model == another_potion);
+					var nPotionHolder = holders?.FirstOrDefault(n => n.Potion != null && n.Potion.Model == another_potion);
 
 					var npotion = nPotionHolder?.Potion;
 
-                    Traverse.Create(npotion).Method("DoFlash").GetValue();
-                }
-            }
+					Traverse.Create(npotion).Method("DoFlash").GetValue();
+				}
+			}
 			*/
-            return;
-        }
+			return;
+		}
 
-        //if it falls here, we have no cards to play at all and no potions which would have sense to use, then end turn automatically
-        PlayerCmd.EndTurn(player, true);
-    }
+		//if it falls here, we have no cards to play at all and no potions which would have sense to use, then end turn automatically
+		PlayerCmd.EndTurn(player, true);
+	}
 
 	public static bool IsAutoPlayable(CardModel? card)
 	{
@@ -797,7 +794,7 @@ public class Patch
 		else if (cardA.Id.Entry != cardB.Id.Entry) return false;
 		else if (cardA.CurrentUpgradeLevel != cardB.CurrentUpgradeLevel) return false;
 		if (cardA.Enchantment == null && cardB.Enchantment != null) return false;
-		else if(cardA.Enchantment != null && cardB.Enchantment != null)
+		else if (cardA.Enchantment != null && cardB.Enchantment != null)
 		{
 			if (cardA.Enchantment.Title.LocEntryKey != cardB.Enchantment.Title.LocEntryKey)
 			{
