@@ -634,7 +634,7 @@ public class Patch
 			for (int th = 0; th < handPile.Cards.Count; th++)
 			{
 				CardModel card = handPile.Cards[th];
-				if (card.Title == "Feed")
+				if (card.Id.Entry == "FEED")
 				{
 					has_feed_card = true;
 				}
