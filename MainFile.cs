@@ -334,27 +334,48 @@ public class Patch
 			{
 				CardModel? first_optimal_card__to_discard = null;
 				bool all_cards_to_discard_optimally_identical = true;
-				int num_cards_to_discard_optimally = 0;
+				int num_sly_cards = 0, num_unplayable_cards = 0, num_playable_cards_with_exhaust_power = 0;
 				for (int th = 0; th < handPile.Cards.Count; th++)
 				{
 					CardModel card = handPile.Cards[th];
-					if (card.IsSlyThisTurn || card.Type > CardType.Power)
+					if (card.IsSlyThisTurn)
 					{
-						num_cards_to_discard_optimally++;
+						num_sly_cards++;
 						if (first_optimal_card__to_discard == null) first_optimal_card__to_discard = card;
 						else if(!CardsEqual(first_optimal_card__to_discard, card))
 						{
 							all_cards_to_discard_optimally_identical = false;
 						}
 					}
+					else if(card.Type > CardType.Power)
+					{
+						num_unplayable_cards++;
+						if (first_optimal_card__to_discard == null) first_optimal_card__to_discard = card;
+						else if (!CardsEqual(first_optimal_card__to_discard, card))
+						{
+							all_cards_to_discard_optimally_identical = false;
+						}
+					}
+					else if ((card.Id.Entry == "BRAND" || card.Id.Entry == "BURNING_PACT" || card.Id.Entry == "SCAVENGE" || card.Id.Entry == "FLAK_CANNON" || card.Id.Entry == "SECOND_WIND" || card.Id.Entry == "PURITY") && card.CanPlay())
+					{
+						num_playable_cards_with_exhaust_power++;
+					}
 				}
+
+				int num_cards_to_discard_optimally = num_sly_cards;
+
+				if (num_playable_cards_with_exhaust_power == 0)//only consider unplayable cards if we can't exhaust them this round
+				{
+					num_cards_to_discard_optimally += num_unplayable_cards;
+				}
+
 
 				if (num_cards_to_discard_optimally == prefs.MinSelect)//if there is only one Sly or unplayable card it will discard it automatically - should be always the most optimal choice
 				{
 					for (int th = 0; th < handPile.Cards.Count && num_cards_to_discard_optimally > 0; th++)
 					{
 						CardModel card = handPile.Cards[th];
-						if (card.IsSlyThisTurn || card.Type > CardType.Power)
+						if (card.IsSlyThisTurn || (num_playable_cards_with_exhaust_power == 0 && card.Type > CardType.Power))
 						{
 							selected.Add(card);
 							num_cards_to_discard_optimally--;
@@ -367,7 +388,7 @@ public class Patch
 					for (int th = 0; th < handPile.Cards.Count && num_to_discard > 0; th++)
 					{
 						CardModel card = handPile.Cards[th];
-						if (card.IsSlyThisTurn || card.Type > CardType.Power)
+						if (card.IsSlyThisTurn || (num_playable_cards_with_exhaust_power == 0 && card.Type > CardType.Power))
 						{
 							selected.Add(card);
 							num_to_discard--;
