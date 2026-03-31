@@ -327,7 +327,7 @@ public class Patch
 					selected.Add(handPile.Cards[th]);
 				}
 			}
-			else if (ModSettings.AutomaticDiscard)//discard selection
+			else if (ModState.IsDiscardTypeOfSelect)//discard selection
 			{
 				CardModel? first_optimal_card__to_discard = null;
 				bool all_cards_to_discard_optimally_identical = true;
