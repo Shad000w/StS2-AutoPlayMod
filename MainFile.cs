@@ -130,12 +130,16 @@ public class Patch
 	[HarmonyPostfix]
 	private static void CardOnFocus(NHandCardHolder __instance)
 	{
-		if (IsAutoPlayable(__instance.CardModel))
+		if (__instance?.CardModel?.TargetType == TargetType.AnyEnemy && IsAutoPlayable(__instance.CardModel))
 		{
 			var target = __instance.CardModel?.CombatState?.HittableEnemies[0];
 			if (target is null) return;
 
 			__instance.CardNode?.SetPreviewTarget(target);
+		}
+		else
+		{
+			__instance?.CardNode?.SetPreviewTarget(null);
 		}
 	}
 
