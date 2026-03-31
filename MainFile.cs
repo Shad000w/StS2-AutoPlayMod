@@ -661,7 +661,7 @@ public class Patch
         foreach (PotionModel another_potion in player.Potions)
         {
 			string id = another_potion.Id.Entry;
-            if (id == "GIGANTIFICATION_POTION" || id == "SOLDIERS_STEW")//if we have no playable attack cards in hand, then potions that improve attack cards are useless
+            if (id == "GIGANTIFICATION_POTION" || id == "SOLDIERS_STEW" || id == "ATTACK_POTION")//if we have no playable attack cards in hand, then potions that improve attack cards are useless
             {
                 //ignore
             }
