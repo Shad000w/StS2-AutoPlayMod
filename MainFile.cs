@@ -422,14 +422,26 @@ public class Patch
 		ModState.CurrentPlayer = player;
 	}
 
+	[HarmonyPatch(typeof(CardSelectCmd), nameof(CardSelectCmd.FromHandForDiscard))]
+	[HarmonyPrefix]
+	private static void BeforeFromHandForDiscard(PlayerChoiceContext context, Player player, CardSelectorPrefs prefs, Func<CardModel, bool>? filter, AbstractModel source)
+	{
+		ModState.IsDiscardTypeOfSelect = true;
+	}
+
+	[HarmonyPatch(typeof(CardSelectCmd), nameof(CardSelectCmd.FromHandForDiscard))]
+	[HarmonyPostfix]
+	private static void AfterFromHandForDiscard(PlayerChoiceContext context, Player player, CardSelectorPrefs prefs, Func<CardModel, bool>? filter, AbstractModel source)
+	{
+		ModState.IsDiscardTypeOfSelect = false;
+	}
+
 	[HarmonyPatch(typeof(CardSelectCmd), nameof(CardSelectCmd.FromSimpleGrid))]
 	[HarmonyPrefix]
 	private static bool FromSimpleGrid(PlayerChoiceContext context, IReadOnlyList<CardModel> cardsIn, Player player, CardSelectorPrefs prefs, ref Task<IEnumerable<CardModel>> __result)
 	{
-		if (CombatManager.Instance.IsEnding)
-		{
-			return true;
-		}
+		if (!ModSettings.AutomaticDiscard) return true;
+		if (CombatManager.Instance.IsEnding) return true;
 
 		List<CardModel> cards = cardsIn.ToList();
 		if (!prefs.RequireManualConfirmation && cards.Count <= prefs.MinSelect)//if we have less cards than needed to select fall back to original function (it selects automatically)
@@ -713,5 +725,6 @@ public class Patch
 	public static class ModState
 	{
 		public static Player? CurrentPlayer;
+		public static bool IsDiscardTypeOfSelect = false;
 	}
 }
