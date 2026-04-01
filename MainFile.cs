@@ -150,7 +150,7 @@ public class Patch
 	[HarmonyPostfix]
 	private static void CreatureOnFocus(NCreature __instance)
 	{
-		if (__instance.Entity.IsMonster && !__instance.Entity.IsDead)
+		if (__instance.Entity.IsMonster && !__instance.Entity.IsPet && !__instance.Entity.IsDead)
 		{
 			ModState.HoveredEnemy = __instance;
 		}
