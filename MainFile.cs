@@ -100,6 +100,8 @@ public class Patch
 	[HarmonyPostfix]
 	private static void GameInputHook(InputEvent inputEvent)
 	{
+		if (NPlayerHand.Instance?.InCardPlay != false || NTargetManager.Instance.IsInSelection == true) return;
+
 		Vector2 position = Vector2.Zero;
 		switch (inputEvent)
 		{
