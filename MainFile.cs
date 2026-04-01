@@ -488,7 +488,7 @@ public class Patch
 							all_cards_to_discard_optimally_identical = false;
 						}
 					}
-					else if (card.Type > CardType.Power)
+					else if (card.Type > CardType.Power && card.Id.Entry != "FRANTIC_ESCAPE")
 					{
 						num_unplayable_cards++;
 						if (first_optimal_card__to_discard == null) first_optimal_card__to_discard = card;
@@ -528,7 +528,7 @@ public class Patch
 					for (int th = 0; th < handPile.Cards.Count && num_cards_to_discard_optimally > 0; th++)
 					{
 						CardModel card = handPile.Cards[th];
-						if (card.IsSlyThisTurn || (num_playable_cards_with_exhaust_power == 0 && card.Type > CardType.Power) || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
+						if (card.IsSlyThisTurn || (num_playable_cards_with_exhaust_power == 0 && (card.Type > CardType.Power && card.Id.Entry != "FRANTIC_ESCAPE")) || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
 						{
 							selected.Add(card);
 							num_cards_to_discard_optimally--;
@@ -541,7 +541,7 @@ public class Patch
 					for (int th = 0; th < handPile.Cards.Count && num_to_discard > 0; th++)
 					{
 						CardModel card = handPile.Cards[th];
-						if (card.IsSlyThisTurn || (num_playable_cards_with_exhaust_power == 0 && card.Type > CardType.Power) || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
+						if (card.IsSlyThisTurn || (num_playable_cards_with_exhaust_power == 0 && (card.Type > CardType.Power && card.Id.Entry != "FRANTIC_ESCAPE")) || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
 						{
 							selected.Add(card);
 							num_to_discard--;
