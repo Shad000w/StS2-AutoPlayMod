@@ -23,6 +23,7 @@ using MegaCrit.Sts2.Core.Nodes.Potions;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
 using System.Text.Json;
@@ -250,9 +251,11 @@ public class Patch
 	[HarmonyPostfix]
 	private static void CardOnFocus(NHandCardHolder __instance)
 	{
-		if (__instance?.CardModel?.TargetType == TargetType.AnyEnemy && IsAutoPlayable(__instance.CardModel))
+		if (__instance == null || __instance.CardModel == null || __instance?.CardModel.CombatState == null) return;
+
+		if (__instance.CardModel.TargetType == TargetType.AnyEnemy && IsAutoPlayable(__instance.CardModel))
 		{
-			var target = __instance.CardModel?.CombatState?.HittableEnemies[0];
+			var target = __instance.CardModel.CombatState.HittableEnemies[0];
 			if (target is null) return;
 			else if (ModState.TargettedEnemy != null && !ModState.TargettedEnemy.IsDead)
 			{
@@ -263,7 +266,35 @@ public class Patch
 		}
 		else
 		{
-			__instance?.CardNode?.SetPreviewTarget(null);
+			int num_enemies = 0, num_enemies_with_same_damage_modifiers = 0;
+			Creature? first = null;
+			foreach (Creature enemy in __instance.CardModel.CombatState.HittableEnemies)
+			{ 
+				if(enemy.IsAlive)
+				{
+					num_enemies++;
+					if (enemy.HasPower<VulnerablePower>() || enemy.HasPower<HardToKillPower>() || enemy.HasPower<FlutterPower>() || enemy.HasPower<SlipperyPower>() )
+					{						
+						if (first == null)
+						{
+							first = enemy;
+							num_enemies_with_same_damage_modifiers++;
+						}
+						else if(enemy.HasPower<SlipperyPower>() == first.HasPower<SlipperyPower>() && enemy.HasPower<VulnerablePower>() == first.HasPower<VulnerablePower>() && enemy.GetPowerAmount<HardToKillPower>() == first.GetPowerAmount<HardToKillPower>() && enemy.HasPower<FlutterPower>() == first.HasPower<FlutterPower>())
+						{
+							num_enemies_with_same_damage_modifiers++;
+						}						
+					}
+				}
+			}
+			if (num_enemies_with_same_damage_modifiers > 0 && num_enemies_with_same_damage_modifiers == num_enemies)
+			{
+				__instance.CardNode?.SetPreviewTarget(first);
+			}
+			else
+			{
+				__instance?.CardNode?.SetPreviewTarget(null);
+			}
 		}
 	}
 
