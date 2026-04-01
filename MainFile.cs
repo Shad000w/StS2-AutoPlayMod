@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Entities.Potions;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Logging;
@@ -310,7 +311,7 @@ public class Patch
 
 		if (isUsable_value == null || (bool)isUsable_value == false) return true;
 
-		if (__instance.Potion.Model.Title.GetRawText() != "Foul Potion")//automatically use every potion except Foul Potion when clicked at them in combat since there is no reason to discard
+		if (__instance.Potion.Model.Usage != PotionUsage.Automatic && __instance.Potion.Model.Id.Entry != "FOUL_POTION")//automatically use every potion except Foul Potion when clicked at them in combat since there is no reason to discard
 		{
 			__instance.UsePotion();
 			return false;
@@ -323,7 +324,7 @@ public class Patch
 	private static bool UsePotion(NPotionHolder __instance, ref Task __result)
 	{
 		PotionModel? potion = __instance.Potion?.Model;
-		if (potion == null) return true;
+		if (potion == null || potion.Usage == PotionUsage.Automatic) return true;
 
 		if (!IsAutoPlayable(potion)) return true;
 
