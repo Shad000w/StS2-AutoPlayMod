@@ -1,3 +1,4 @@
+using AutoPlay.Config;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.CardSelection;
@@ -41,6 +42,7 @@ public static class ModSettings
 	public static bool AutomaticExhaust { get; set; } = false;
 	public static bool AutomaticSelect { get; set; } = false;
 	public static bool AutomaticRetain { get; set; } = false;
+	public static bool HardSelect { get; set; } = false;
 }
 public class AutoPlayConfigData
 {
@@ -48,6 +50,7 @@ public class AutoPlayConfigData
 	public bool AutomaticExhaust { get; set; }
 	public bool AutomaticSelect { get; set; }
 	public bool AutomaticRetain { get; set; }
+	public bool HardSelect { get; set; }
 }
 
 [ModInitializer(nameof(Initialize))]
@@ -73,8 +76,12 @@ public partial class MainFile : Node
 				ModSettings.AutomaticExhaust = data.AutomaticExhaust;
 				ModSettings.AutomaticSelect = data.AutomaticSelect;
 				ModSettings.AutomaticRetain = data.AutomaticRetain;
+				ModSettings.HardSelect = data.HardSelect;
 			}
 		}
+
+		ModConfigBridge.DeferredRegister();
+
 		Log("Initialized");
 	}
 
@@ -105,7 +112,7 @@ public class Patch
 	[HarmonyPostfix]
 	private static void GameInputHook(InputEvent inputEvent)
 	{
-		if (NPlayerHand.Instance?.InCardPlay != false || NTargetManager.Instance.IsInSelection == true || CombatManager.Instance.IsOverOrEnding == true) return;
+		if (!ModSettings.HardSelect || NPlayerHand.Instance?.InCardPlay != false || NTargetManager.Instance.IsInSelection == true || CombatManager.Instance.IsOverOrEnding == true) return;
 
 		Vector2 position = Vector2.Zero;
 		switch (inputEvent)
@@ -164,7 +171,7 @@ public class Patch
 	[HarmonyPrefix]
 	private static bool CreatureOnUnFocus(NCreature __instance)
 	{
-		if (__instance.Entity == null || __instance.Entity.IsPlayer || __instance.Entity.IsPet || __instance.Entity.IsDead) return true;
+		if (!ModSettings.HardSelect || __instance.Entity == null || __instance.Entity.IsPlayer || __instance.Entity.IsPet || __instance.Entity.IsDead) return true;
 
 		if (ModState.HoveredEnemy != null)
 		{
@@ -204,7 +211,7 @@ public class Patch
 	[HarmonyPrefix]
 	private static bool HideSingleSelectReticle(NCreature __instance)
 	{
-		return !ModState.DoNotHideReticle;
+		return !ModSettings.HardSelect || !ModState.DoNotHideReticle;
 	}
 
 	[HarmonyPrefix]
@@ -220,7 +227,7 @@ public class Patch
 		{
 			var target = card.CombatState?.HittableEnemies[0];
 			if (target is null) return true;
-			else if(ModState.TargettedEnemy != null && !ModState.TargettedEnemy.IsDead)
+			else if(ModSettings.HardSelect && ModState.TargettedEnemy != null && !ModState.TargettedEnemy.IsDead)
 			{
 				target = ModState.TargettedEnemy;
 			}
@@ -258,7 +265,7 @@ public class Patch
 		{
 			var target = __instance.CardModel.CombatState.HittableEnemies[0];
 			if (target is null) return;
-			else if (ModState.TargettedEnemy != null && !ModState.TargettedEnemy.IsDead)
+			else if (ModSettings.HardSelect && ModState.TargettedEnemy != null && !ModState.TargettedEnemy.IsDead)
 			{
 				target = ModState.TargettedEnemy;
 			}
@@ -330,7 +337,7 @@ public class Patch
 
 		var target = potion.Owner.Creature.CombatState?.HittableEnemies[0];
 		if (target is null) return true;
-		else if (ModState.TargettedEnemy != null && !ModState.TargettedEnemy.IsDead)
+		else if (ModSettings.HardSelect && ModState.TargettedEnemy != null && !ModState.TargettedEnemy.IsDead)
 		{
 			target = ModState.TargettedEnemy;
 		}
@@ -980,7 +987,7 @@ public class Patch
 		return card.TargetType switch
 		{
 			TargetType.None or TargetType.Self or TargetType.AllEnemies or TargetType.RandomEnemy => true,
-			TargetType.AnyEnemy => card.CombatState.HittableEnemies.Count == 1 || (ModState.TargettedEnemy != null && !ModState.TargettedEnemy.IsDead),
+			TargetType.AnyEnemy => card.CombatState.HittableEnemies.Count == 1 || (ModSettings.HardSelect && ModState.TargettedEnemy != null && !ModState.TargettedEnemy.IsDead),
 			_ => false
 		};
 	}
@@ -992,7 +999,7 @@ public class Patch
 		return potion.TargetType switch
 		{
 			TargetType.None or TargetType.Self or TargetType.AllEnemies or TargetType.RandomEnemy => true,
-			TargetType.AnyEnemy => potion.Owner.Creature.CombatState.HittableEnemies.Count == 1 || (ModState.TargettedEnemy != null && !ModState.TargettedEnemy.IsDead),
+			TargetType.AnyEnemy => potion.Owner.Creature.CombatState.HittableEnemies.Count == 1 || (ModSettings.HardSelect && ModState.TargettedEnemy != null && !ModState.TargettedEnemy.IsDead),
 			_ => false
 		};
 	}
