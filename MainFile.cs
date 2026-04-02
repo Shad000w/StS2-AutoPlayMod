@@ -38,12 +38,14 @@ namespace AutoPlay;
 public static class ModSettings
 {
 	public static bool AutomaticDiscard { get; set; } = false;
+	public static bool AutomaticExhaust { get; set; } = false;
 	public static bool AutomaticSelect { get; set; } = false;
 	public static bool AutomaticRetain { get; set; } = false;
 }
 public class AutoPlayConfigData
 {
 	public bool AutomaticDiscard { get; set; }
+	public bool AutomaticExhaust { get; set; }
 	public bool AutomaticSelect { get; set; }
 	public bool AutomaticRetain { get; set; }
 }
@@ -68,6 +70,7 @@ public partial class MainFile : Node
 			if (data != null)
 			{
 				ModSettings.AutomaticDiscard = data.AutomaticDiscard;
+				ModSettings.AutomaticExhaust = data.AutomaticExhaust;
 				ModSettings.AutomaticSelect = data.AutomaticSelect;
 				ModSettings.AutomaticRetain = data.AutomaticRetain;
 			}
@@ -483,12 +486,14 @@ public class Patch
 		[HarmonyPrefix]
 		private static bool Prefix(NPlayerHand __instance, CardSelectorPrefs prefs, Func<CardModel, bool> filter, AbstractModel source, NPlayerHand.Mode mode, ref Task<IEnumerable<CardModel>> __result)
 		{
+			if (ModState.CurrentPlayer == null) return true;
+
 			bool IsDiscardTypeOfSelect = prefs.Prompt.LocEntryKey == "TO_DISCARD";
 			bool IsExhaustTypeOfSelect = prefs.Prompt.LocEntryKey == "TO_EXHAUST";
 
-			if (!IsDiscardTypeOfSelect && !ModSettings.AutomaticSelect) return true;
-			else if (IsDiscardTypeOfSelect && !ModSettings.AutomaticDiscard) return true;
-			else if (ModState.CurrentPlayer == null) return true;
+			if (IsDiscardTypeOfSelect && !ModSettings.AutomaticDiscard) return true;
+			else if (IsExhaustTypeOfSelect && !ModSettings.AutomaticExhaust) return true;
+			else if (!IsExhaustTypeOfSelect && !IsDiscardTypeOfSelect && !ModSettings.AutomaticSelect) return true;
 
 			CardPile handPile = PileType.Hand.GetPile(ModState.CurrentPlayer);
 
