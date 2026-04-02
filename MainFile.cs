@@ -38,19 +38,19 @@ namespace AutoPlay;
 
 public static class ModSettings
 {
-	public static bool AutomaticDiscard { get; set; } = false;
-	public static bool AutomaticExhaust { get; set; } = false;
-	public static bool AutomaticSelect { get; set; } = false;
-	public static bool AutomaticRetain { get; set; } = false;
-	public static bool HardSelect { get; set; } = false;
+	public static bool AutomaticDiscard { get; set; } = true;
+	public static bool AutomaticExhaust { get; set; } = true;
+	public static bool AutomaticSelect { get; set; } = true;
+	public static bool AutomaticRetain { get; set; } = true;
+	public static bool HardSelect { get; set; } = true;
 }
 public class AutoPlayConfigData
 {
-	public bool AutomaticDiscard { get; set; }
-	public bool AutomaticExhaust { get; set; }
-	public bool AutomaticSelect { get; set; }
-	public bool AutomaticRetain { get; set; }
-	public bool HardSelect { get; set; }
+	public bool AutomaticDiscard { get; set; } = true;
+	public bool AutomaticExhaust { get; set; } = true;
+	public bool AutomaticSelect { get; set; } = true;
+	public bool AutomaticRetain { get; set; } = true;
+	public bool HardSelect { get; set; } = true;
 }
 
 [ModInitializer(nameof(Initialize))]
