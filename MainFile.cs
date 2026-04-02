@@ -876,7 +876,7 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (id == "GIGANTIFICATION_POTION" || id == "SOLDIERS_STEW" || id == "ATTACK_POTION")//if we have no playable attack cards in hand, then potions that improve attack cards are useless
+			else if (id == "GIGANTIFICATION_POTION" || id == "SOLDIERS_STEW" || id == "ATTACK_POTION" || id == "DUPLICATOR")//if we have no playable attack cards in hand, then potions that improve attack cards are useless
 			{
 				//ignore
 			}
@@ -936,7 +936,7 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (num_playable_cards == 0 && (id == "STABLE_SERUM" || id == "BLESSING_OF_THE_FORGE" || id == "DUPLICATOR"))//if we have no playable cards in hand, then potions that retains or improve cards in hand are useless
+			else if (num_playable_cards == 0 && (id == "STABLE_SERUM" || id == "BLESSING_OF_THE_FORGE"))//if we have no playable cards in hand, then potions that retains or improve cards in hand are useless
 			{
 				//ignore
 			}
