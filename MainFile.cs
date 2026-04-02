@@ -154,7 +154,7 @@ public class Patch
 	[HarmonyPostfix]
 	private static void CreatureOnFocus(NCreature __instance)
 	{
-		if (__instance.Entity.IsMonster && !__instance.Entity.IsPet && !__instance.Entity.IsDead)
+		if (ModSettings.HardSelect && __instance.Entity.IsMonster && !__instance.Entity.IsPet && !__instance.Entity.IsDead)
 		{
 			ModState.HoveredEnemy = __instance;
 		}
@@ -164,9 +164,7 @@ public class Patch
 	[HarmonyPrefix]
 	private static bool CreatureOnUnFocus(NCreature __instance)
 	{
-		var Entity = AccessTools.PropertyGetter(typeof(NCreature), "Entity")?.Invoke(__instance, null) as Creature;
-
-		if (Entity == null || Entity.IsPlayer || Entity.IsPet || Entity.IsDead) return true;
+		if (__instance.Entity == null || __instance.Entity.IsPlayer || __instance.Entity.IsPet || __instance.Entity.IsDead) return true;
 
 		if (ModState.HoveredEnemy != null)
 		{
@@ -174,12 +172,11 @@ public class Patch
 		}
 
 		var field = AccessTools.Field(typeof(NCreature), "_stateDisplay");
-		var creatureStateDisplay = field?.GetValue(__instance) as NCreatureStateDisplay;
 
-		if (creatureStateDisplay == null) return true;
+		if (field?.GetValue(__instance) is not NCreatureStateDisplay creatureStateDisplay) return true;
 
 		var setter = AccessTools.PropertySetter(typeof(NCreature), "IsFocused");
-		setter?.Invoke(__instance, new object[] { false });
+		setter?.Invoke(__instance, [false]);
 
 		if (!ModState.DoNotHideReticle)
 		{
@@ -188,9 +185,9 @@ public class Patch
 
 		creatureStateDisplay.HideNameplate();
 
-		if(Entity.Player != null)
+		if(__instance.Entity.Player != null)
 		{
-			NRun.Instance?.GlobalUi.MultiplayerPlayerContainer.UnhighlightPlayer(Entity.Player);//this doesn't make sense to me since we know that Entity.IsPlayer == false
+			NRun.Instance?.GlobalUi.MultiplayerPlayerContainer.UnhighlightPlayer(__instance.Entity.Player);//this doesn't make sense to me since we know that Entity.IsPlayer == false
 		}
 		NTargetManager.Instance.OnNodeUnhovered(__instance);
 		var method = AccessTools.Method(typeof(NCreature), "ShowCreatureHoverTips");
