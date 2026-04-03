@@ -813,7 +813,7 @@ public class Patch
 						}
 					}
 				}
-				int hp_after_poison = enemy.CurrentHp - damage_from_poison - enemy.GetPowerAmount<PlowPower>() + enemy.Block;
+				int hp_after_poison = enemy.CurrentHp - damage_from_poison - enemy.GetPowerAmount<PlowPower>() - enemy.GetPowerAmount<ShriekPower>() + enemy.Block;
 				if (hp_after_poison < minimum_enemy_hitpoints)
 				{
 					minimum_enemy_hitpoints = hp_after_poison;
