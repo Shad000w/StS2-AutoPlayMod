@@ -153,7 +153,7 @@ public class Patch
 	[HarmonyPostfix]
 	private static void CreatureOnFocus(NCreature __instance)
 	{
-		if (ModSettings.HardSelect && __instance.Entity.IsMonster && !__instance.Entity.IsPet && !__instance.Entity.IsDead)
+		if (ModSettings.HardSelect && NPlayerHand.Instance?.InCardPlay != true && !NTargetManager.Instance.IsInSelection && !CombatManager.Instance.IsOverOrEnding && __instance.Entity.IsMonster && !__instance.Entity.IsPet && __instance.Entity.IsAlive)
 		{
 			ModState.HoveredEnemy = __instance;
 		}
