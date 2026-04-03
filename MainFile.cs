@@ -104,7 +104,7 @@ public class Patch
 	[HarmonyPostfix]
 	private static void GameInputHook(InputEvent inputEvent)
 	{
-		if (!ModSettings.HardSelect || NPlayerHand.Instance?.InCardPlay != false || NTargetManager.Instance.IsInSelection == true || CombatManager.Instance.IsOverOrEnding == true) return;
+		if (!ModSettings.HardSelect || NPlayerHand.Instance?.InCardPlay != false || NTargetManager.Instance.IsInSelection || CombatManager.Instance.IsOverOrEnding || NCombatRoom.Instance == null) return;
 
 		Vector2 position = Vector2.Zero;
 		switch (inputEvent)
@@ -115,8 +115,40 @@ public class Patch
 			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } mb:
 				position = mb.Position;
 				break;
+			case InputEventKey { Pressed: true, PhysicalKeycode: Key.Tab} key:
+				if (!NDevConsole.Instance.Visible && !key.AltPressed && !key.ShiftPressed && !key.CtrlPressed)
+				{
+					if (ModState.TargettedEnemy != null && ModState.TargettedEnemy_NCreature != null && ModState.TargettedEnemy_NCreature.Entity.CombatState != null)
+					{
+						var enemies = ModState.TargettedEnemy_NCreature.Entity.CombatState.HittableEnemies;
+
+						for (int th = 0; th < enemies.Count; th++)
+						{
+							var enemy = enemies[th];
+
+							if (enemy.IsAlive && enemy == ModState.TargettedEnemy)
+							{
+								int nextIndex = (th + 1) % enemies.Count;
+								var nextEnemy = enemies[nextIndex];
+
+								var enemy_node = NCombatRoom.Instance.GetCreatureNode(nextEnemy);
+								if (enemy_node != null)
+								{
+									ModState.DoNotHideReticle = false;
+									ModState.TargettedEnemy_NCreature.HideSingleSelectReticle();
+									ModState.TargettedEnemy_NCreature = enemy_node;
+									ModState.TargettedEnemy = nextEnemy;
+									ModState.TargettedEnemy_NCreature.ShowSingleSelectReticle();
+									ModState.DoNotHideReticle = true;
+								}
+								return;
+							}
+						}
+					}
+				}
+				return;
 			default:
-				break;
+				return;
 		}
 
 		if(position != Vector2.Zero && ModState.HoveredEnemy != null)
