@@ -899,7 +899,7 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (id == "GIGANTIFICATION_POTION" || id == "SOLDIERS_STEW" || id == "ATTACK_POTION" || id == "DUPLICATOR")//if we have no playable attack cards in hand, then potions that improve attack cards are useless
+			else if (id == "GIGANTIFICATION_POTION" || id == "SOLDIERS_STEW" || id == "DUPLICATOR")//if we have no playable attack cards in hand, then potions that improve attack cards are useless
 			{
 				//ignore
 			}
