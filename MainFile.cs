@@ -1007,7 +1007,7 @@ public class Patch
 		if (cardA.Enchantment == null && cardB.Enchantment != null) return false;
 		else if (cardA.Enchantment != null && cardB.Enchantment != null)
 		{
-			if (cardA.Enchantment.Title.LocEntryKey != cardB.Enchantment.Title.LocEntryKey)
+			if (cardA.Enchantment.Id.Entry != cardB.Enchantment.Id.Entry)
 			{
 				return false;
 			}
@@ -1015,7 +1015,7 @@ public class Patch
 		if (cardA.Affliction == null && cardB.Affliction != null) return false;
 		else if (cardA.Affliction != null && cardB.Affliction != null)
 		{
-			if (cardA.Affliction.Title.LocEntryKey != cardB.Affliction.Title.LocEntryKey)
+			if (cardA.Affliction.Id.Entry != cardB.Affliction.Id.Entry)
 			{
 				return false;
 			}
