@@ -786,7 +786,7 @@ public class Patch
 		if (combatState == null) return;
 
 		var playerCreatures = combatState.PlayerCreatures;
-		int num_enemies_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_enemy_damage = 0, minimum_enemy_hitpoints = 999;
+		int num_enemies_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_enemy_damage = 0, num_damage_received_from_cards = 0, minimum_enemy_hitpoints = 999;
 
 		IReadOnlyList<Creature> enemies = player.Creature.CombatState.Enemies;
 		for (int th = 0; th < enemies.Count; th++)
@@ -825,7 +825,6 @@ public class Patch
 
 		if (num_enemies_survive_this_turn == 0)//no enemies will survive after this card was played
 		{
-			int num_damage_received_from_cards = 0;
 			bool has_feed_card = false;
 
 			for (int th = 0; th < handPile.Cards.Count; th++)
@@ -920,7 +919,7 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (num_enemies_intends_attack == 0 && (another_potion.DynamicVars.ContainsKey("Block") || another_potion.DynamicVars.ContainsKey("PlatingPower")))//if no enemy intends to attack, then potions that adds block or plating are useless
+			else if (num_damage_received_from_cards == 0 && num_enemies_intends_attack == 0 && (another_potion.DynamicVars.ContainsKey("Block") || another_potion.DynamicVars.ContainsKey("PlatingPower") || another_potion.DynamicVars.ContainsKey("BufferPower") || another_potion.DynamicVars.ContainsKey("IntangiblwPower")))//if no enemy intends to attack, then potions that reduces damage taken are useless
 			{
 				//ignore
 			}
