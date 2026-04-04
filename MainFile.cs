@@ -238,6 +238,19 @@ public class Patch
 		return !ModSettings.HardSelect || !ModState.DoNotHideReticle;
 	}
 
+	[HarmonyPatch(typeof(NCreature), "StartDeathAnim")]
+	[HarmonyPostfix]
+	private static void CreatureStartDeathAnim(NCreature __instance)
+	{
+		if (ModState.TargettedEnemy_NCreature != null && ModState.TargettedEnemy_NCreature == __instance)
+		{
+			ModState.DoNotHideReticle = false;
+			ModState.TargettedEnemy_NCreature.HideSingleSelectReticle();
+			ModState.TargettedEnemy_NCreature = null;
+			ModState.TargettedEnemy = null;
+		}
+	}
+
 	[HarmonyPrefix]
 	[HarmonyPatch(typeof(NMouseCardPlay), "TargetSelection")]
 	private static bool TargetSelection(NMouseCardPlay __instance, TargetMode targetMode, ref Task __result)
