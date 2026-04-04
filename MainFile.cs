@@ -936,7 +936,7 @@ public class Patch
 			{
 				//ignore
 			}
-			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0 || num_weak_enemies == num_enemies_intends_attack) && another_potion.DynamicVars.ContainsKey("WeakPowername"))//if no enemy intends to attack, then potions that weakens enemy are useless
+			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0 || num_weak_enemies == num_enemies_intends_attack) && another_potion.DynamicVars.ContainsKey("WeakPower"))//if no enemy intends to attack, then potions that weakens enemy are useless
 			{
 				//ignore
 			}
