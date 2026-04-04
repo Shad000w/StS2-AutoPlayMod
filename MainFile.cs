@@ -959,7 +959,7 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (num_playable_cards == 0 && (id == "STABLE_SERUM" || id == "BLESSING_OF_THE_FORGE"))//if we have no playable cards in hand, then potions that retains or improve cards in hand are useless
+			else if (num_playable_cards == 0 && (id == "STABLE_SERUM" || id == "BLESSING_OF_THE_FORGE" || id == "TOUCH_OF_INSANITY"))//if we have no playable cards in hand, then potions that retains or improve cards in hand are useless
 			{
 				//ignore
 			}
