@@ -379,12 +379,12 @@ public class Patch
 
 	[HarmonyPatch(typeof(CardModel), nameof(CardModel.OnPlayWrapper))]
 	[HarmonyPostfix]
-	private static void AfterCardPlayed(CardModel __instance, PlayerChoiceContext choiceContext, Creature? target, bool isAutoPlay, ResourceInfo resources, bool skipCardPileVisuals, ref Task __result)
+	private static void AfterCardPlayed(CardModel __instance, ref Task __result)
 	{
-		__result = AfterCardPlayedFinished(__result, __instance, choiceContext, target, isAutoPlay, resources, skipCardPileVisuals);
+		__result = AfterCardPlayedFinished(__result, __instance);
 	}
 
-	private static async Task AfterCardPlayedFinished(Task originalTask,CardModel __instance,PlayerChoiceContext choiceContext,Creature? target,bool isAutoPlay,ResourceInfo resources,bool skipCardPileVisuals)
+	private static async Task AfterCardPlayedFinished(Task originalTask, CardModel __instance)
 	{
 		await originalTask;
 
