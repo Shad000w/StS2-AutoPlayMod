@@ -8,6 +8,7 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.Potions;
+using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Logging;
@@ -108,27 +109,30 @@ public class Patch
 		if (NPlayerHand.Instance?.InCardPlay != false || NTargetManager.Instance.IsInSelection || CombatManager.Instance.IsOverOrEnding || NCombatRoom.Instance == null || ModState.TargettedEnemy == null || ModState.TargettedEnemy.Entity.CombatState == null) return;
 
 		var enemies = ModState.TargettedEnemy.Entity.CombatState.HittableEnemies;
+		int index = enemies.IndexOf(ModState.TargettedEnemy.Entity);
 
-		for (int th = 0; th < enemies.Count; th++)
+		if (index >= 0 && enemies.Count > 0)
 		{
-			var enemy = enemies[th];
-
-			if (enemy.IsAlive && enemy == ModState.TargettedEnemy.Entity)
+			for (int th = 1; th <= enemies.Count; th++)
 			{
-				int nextIndex = (keyEvent.ShiftPressed ? (th - 1 + enemies.Count) : (th + 1)) % enemies.Count;
+				int nextIndex = (keyEvent.ShiftPressed ? (index - th + enemies.Count) : (index + th)) % enemies.Count;
 				var nextEnemy = enemies[nextIndex];
-				var enemy_node = NCombatRoom.Instance.GetCreatureNode(nextEnemy);
-				if (enemy_node != null)
+
+				if (nextEnemy.IsAlive)
 				{
-					ModState.DoNotHideReticle = false;
-					ModState.TargettedEnemy.HideSingleSelectReticle();
-					ModState.TargettedEnemy = enemy_node;
-					ModState.TargettedEnemy.ShowSingleSelectReticle();
-					ModState.DoNotHideReticle = true;
+					var enemy_node = NCombatRoom.Instance.GetCreatureNode(nextEnemy);
+					if (enemy_node != null)
+					{
+						ModState.DoNotHideReticle = false;
+						ModState.TargettedEnemy.HideSingleSelectReticle();
+						ModState.TargettedEnemy = enemy_node;
+						ModState.TargettedEnemy.ShowSingleSelectReticle();
+						ModState.DoNotHideReticle = true;
+					}
+					break;
 				}
-				return;
 			}
-		}*/
+		}
 	}
 
 	[HarmonyPatch(typeof(NCreatureVisuals), "_Ready")]
