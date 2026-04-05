@@ -887,7 +887,7 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (player.Creature.Block <= 0 && id == "FORTIFIER")//if we have no block, then potions that multiply block are useless
+			else if ((player.Creature.Block <= 0 || (num_damage_received_from_cards == 0 && num_enemies_intends_attack == 0)) && id == "FORTIFIER")//if we have no block, or we won't receive any damage then potions that multiply block are useless
 			{
 				//ignore
 			}
