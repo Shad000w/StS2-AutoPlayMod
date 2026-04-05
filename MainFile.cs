@@ -20,6 +20,7 @@ using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Debug;
 using MegaCrit.Sts2.Core.Nodes.Potions;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
+using MegaCrit.Sts2.Core.Rooms;
 using System.Reflection;
 using System.Text.Json;
 using Logger = MegaCrit.Sts2.Core.Logging.Logger;
@@ -170,6 +171,18 @@ public class Patch
 					}
 				}
 			};
+		}
+	}
+
+	[HarmonyPatch(typeof(NCombatRoom), nameof(NCombatRoom._Ready))]
+	[HarmonyPostfix]
+	private static void CombatRoomEnter(NCombatRoom __instance)
+	{
+		if (__instance != null && __instance.Mode == CombatRoomMode.ActiveCombat && ModState.TargettedEnemy != null)
+		{
+			ModState.DoNotHideReticle = false;
+			ModState.TargettedEnemy.HideSingleSelectReticle();
+			ModState.TargettedEnemy = null;
 		}
 	}
 
