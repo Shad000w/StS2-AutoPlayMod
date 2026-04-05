@@ -733,9 +733,10 @@ public class Patch
 
 	private static void AutomaticEndTurn(Player player)
 	{
-		if (player.Creature.CombatState == null) return;
+		if (CombatManager.Instance.IsOverOrEnding || player.Creature.CombatState == null) return;
 
 		var combatState = CombatManager.Instance.DebugOnlyGetState();
+
 		if (combatState == null) return;
 
 		var playerCreatures = combatState.PlayerCreatures;
