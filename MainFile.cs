@@ -127,7 +127,7 @@ public class Patch
 				}
 				return;
 			}
-		}
+		}*/
 	}
 
 	[HarmonyPatch(typeof(NCreatureVisuals), "_Ready")]
@@ -136,13 +136,14 @@ public class Patch
 	{
 		var parent = __instance.GetParent<NCreature>();
 
+
 		if (parent?.Hitbox != null && parent.Entity.IsMonster && !parent.Entity.IsPet && parent.Entity.IsAlive)
 		{
 			parent.Hitbox.GuiInput += (inputEvent) =>
 			{
-				if ((inputEvent is InputEventMouseButton mouse && mouse.Pressed) || (inputEvent is InputEventScreenTouch touch && touch.Pressed))
+				if ((inputEvent is InputEventMouseButton mouse && mouse.Pressed && !mouse.DoubleClick && mouse.ButtonIndex == MouseButton.Left) || (inputEvent is InputEventScreenTouch touch && touch.Pressed && !touch.DoubleTap))
 				{
-					if (NTargetManager.Instance.IsInSelection || CombatManager.Instance.IsOverOrEnding) return;
+					if (NTargetManager.Instance.IsInSelection || CombatManager.Instance.IsOverOrEnding || Time.GetTicksMsec() < ModState.IgnoreEnemyClickUntilMs) return;
 
 					if (ModState.DoNotHideReticle != true)
 					{
@@ -386,6 +387,7 @@ public class Patch
 
 	private static async Task AfterCardPlayedFinished(Task originalTask, CardModel __instance)
 	{
+		ModState.IgnoreEnemyClickUntilMs = Time.GetTicksMsec() + 250;
 		await originalTask;
 
 		if (CombatManager.Instance.IsPlayPhase)
@@ -1013,5 +1015,6 @@ public class Patch
 		public static Player? CurrentPlayer;
 		public static NCreature? TargettedEnemy;
 		public static bool DoNotHideReticle;
+		public static ulong IgnoreEnemyClickUntilMs;
 	}
 }
