@@ -152,10 +152,7 @@ public class Patch
 
 					if (ModState.DoNotHideReticle != true)
 					{
-						if (ModState.TargettedEnemy != null)
-						{
-							ModState.TargettedEnemy.HideSingleSelectReticle();
-						}
+						ModState.TargettedEnemy?.HideSingleSelectReticle();
 						parent.ShowSingleSelectReticle();
 						ModState.DoNotHideReticle = true;
 						ModState.TargettedEnemy = parent;
@@ -163,15 +160,17 @@ public class Patch
 					else
 					{
 						ModState.DoNotHideReticle = false;
-						if (ModState.TargettedEnemy != null)
+						ModState.TargettedEnemy?.HideSingleSelectReticle();
+						if (parent != ModState.TargettedEnemy)
 						{
-							ModState.TargettedEnemy.HideSingleSelectReticle();
+							parent.ShowSingleSelectReticle();
+							ModState.DoNotHideReticle = true;
+							ModState.TargettedEnemy = parent;
 						}
 						else
 						{
-							parent.HideSingleSelectReticle();
+							ModState.TargettedEnemy = null;
 						}
-						ModState.TargettedEnemy = null;
 					}
 				}
 			};
@@ -666,7 +665,7 @@ public class Patch
 					}
 				}
 			}
-			else//either retain or exhaust selection - only select automatically when all cards in hand are identical
+			else//not discard nor exhaust selection - only select automatically when all cards in hand are identical
 			{
 				CardModel first = handPile.Cards[0];
 				for (int th = 1; th < handPile.Cards.Count; th++)
