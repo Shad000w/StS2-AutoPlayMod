@@ -4,11 +4,13 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.Potions;
 using MegaCrit.Sts2.Core.Extensions;
+using MegaCrit.Sts2.Core.GameActions;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Logging;
@@ -22,6 +24,7 @@ using MegaCrit.Sts2.Core.Nodes.Debug;
 using MegaCrit.Sts2.Core.Nodes.Potions;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Rooms;
+using MegaCrit.Sts2.Core.Runs;
 using System.Reflection;
 using System.Text.Json;
 using Logger = MegaCrit.Sts2.Core.Logging.Logger;
@@ -751,13 +754,14 @@ public class Patch
 
 	private static void AutomaticEndTurn(Player player)
 	{
-		if (CombatManager.Instance.IsOverOrEnding || player.Creature.CombatState == null) return;
+		if (CombatManager.Instance.IsOverOrEnding || player.Creature.CombatState == null || LocalContext.NetId != player.NetId) return;
 
 		var combatState = CombatManager.Instance.DebugOnlyGetState();
 
 		if (combatState == null) return;
 
 		var playerCreatures = combatState.PlayerCreatures;
+
 		int num_enemies_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_enemy_damage = 0, num_damage_received_from_cards = 0, minimum_enemy_hitpoints = 999;
 
 		IReadOnlyList<Creature> enemies = player.Creature.CombatState.Enemies;
@@ -815,7 +819,7 @@ public class Patch
 			if (has_feed_card == false && num_damage_received_from_cards <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
 			{
 				//we either have no damage debuffs or we can block them so no reason to play this round further
-				PlayerCmd.EndTurn(player, true);
+				RunManager.Instance.ActionQueueSynchronizer.RequestEnqueue(new EndPlayerTurnAction(player, player.Creature.CombatState.RoundNumber));
 				return;
 			}
 		}
@@ -972,7 +976,7 @@ public class Patch
 		}
 
 		//if it falls here, we have no cards to play at all and no potions which would have sense to use, then end turn automatically
-		PlayerCmd.EndTurn(player, true);
+		RunManager.Instance.ActionQueueSynchronizer.RequestEnqueue(new EndPlayerTurnAction(player, player.Creature.CombatState.RoundNumber));			
 	}
 
 	public static bool IsAutoPlayable(CardModel? card)
