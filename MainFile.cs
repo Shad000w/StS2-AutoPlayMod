@@ -214,7 +214,7 @@ public class Patch
 
 	[HarmonyPrefix]
 	[HarmonyPatch(typeof(NMouseCardPlay), "TargetSelection")]
-	private static bool TargetSelection(NMouseCardPlay __instance, TargetMode targetMode, ref Task __result)
+	private static bool TargetSelection(NMouseCardPlay __instance, ref Task __result)
 	{
 		var card = AccessTools.PropertyGetter(typeof(NCardPlay), "Card")?.Invoke(__instance, null) as CardModel;
 
@@ -238,6 +238,31 @@ public class Patch
 		return false;
 	}
 
+	[HarmonyPrefix]
+	[HarmonyPatch(typeof(NControllerCardPlay), "Start")]
+	private static bool TargetSelection_Controller(NControllerCardPlay __instance)
+	{
+		var card = AccessTools.PropertyGetter(typeof(NCardPlay), "Card")?.Invoke(__instance, null) as CardModel;
+
+		if (__instance.Holder?.CardNode == null || !IsAutoPlayable(card)) return true;
+
+		if (card is { TargetType: TargetType.AnyEnemy })
+		{
+			var target = card.CombatState?.HittableEnemies[0];
+			if (target is null) return true;
+			else if (ModSettings.HardSelect && ModState.TargettedEnemy != null && !ModState.TargettedEnemy.Entity.IsDead)
+			{
+				target = ModState.TargettedEnemy.Entity;
+			}
+
+			AccessTools.Method(typeof(NCardPlay), "TryShowEvokingOrbs")?.Invoke(__instance, null);
+			__instance.Holder.CardNode.CardHighlight.AnimFlash();
+			AccessTools.Method(typeof(NCardPlay), "TryPlayCard")?.Invoke(__instance, [target]);
+			return false;
+		}
+
+		return false;
+	}
 
 	[HarmonyPrefix]
 	[HarmonyPatch(typeof(NMouseCardPlay), "IsCardInPlayZone")]
