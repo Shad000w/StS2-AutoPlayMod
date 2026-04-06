@@ -196,7 +196,7 @@ public class Patch
 	[HarmonyPrefix]
 	private static bool HideSingleSelectReticle(NCreature __instance)
 	{
-		return !ModSettings.HardSelect || !ModState.DoNotHideReticle;
+		return !ModSettings.HardSelect || ModState.TargettedEnemy != __instance || !ModState.DoNotHideReticle;
 	}
 
 	[HarmonyPatch(typeof(NCreature), "StartDeathAnim")]
