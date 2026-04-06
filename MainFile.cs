@@ -475,7 +475,7 @@ public class Patch
 				if (has_feed_card == false && num_damage_received_from_cards <= __instance.Block + __instance.GetPowerAmount<PlatingPower>())
 				{
 					//we either have no damage debuffs or we can block them so no reason to play this round further
-					PlayerCmd.EndTurn(__instance.Player, true);
+					RunManager.Instance.ActionQueueSynchronizer.RequestEnqueue(new EndPlayerTurnAction(__instance.Player, __instance.CombatState.RoundNumber));
 					return;
 				}
 			}
