@@ -440,13 +440,26 @@ public class Patch
 		{
 			int num_enemies_survive_this_turn = 0;
 
+			int damage_from_bomb = 0;
+
+			IReadOnlyList<Creature> allies = __instance.CombatState.PlayerCreatures;
+			for (int th = 0; th < allies.Count; th++)
+			{
+				Creature ally = allies[th];
+				var bombPower = ally.GetPower<TheBombPower>();
+				if (bombPower != null && bombPower.Amount == 1)
+				{
+					damage_from_bomb += bombPower.DynamicVars.Damage.IntValue;
+				}
+			}
+
 			IReadOnlyList<Creature> enemies = __instance.CombatState.Enemies;
 			for (int th = 0; th < enemies.Count; th++)
 			{
 				Creature enemy = enemies[th];
 				int damage_from_poison = (enemy.GetPower<PoisonPower>()?.CalculateTotalDamageNextTurn() ?? 0);
 
-				if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<AdaptablePower>() > 0 || damage_from_poison < enemy.CurrentHp))
+				if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<AdaptablePower>() > 0 || damage_from_poison + damage_from_bomb < enemy.CurrentHp))
 				{
 					num_enemies_survive_this_turn++;
 				}
@@ -756,11 +769,18 @@ public class Patch
 	{
 		if (CombatManager.Instance.IsOverOrEnding || player.Creature.CombatState == null || LocalContext.NetId != player.NetId) return;
 
-		var combatState = CombatManager.Instance.DebugOnlyGetState();
+		int damage_from_bomb = 0;
 
-		if (combatState == null) return;
-
-		var playerCreatures = combatState.PlayerCreatures;
+		IReadOnlyList<Creature> allies = player.Creature.CombatState.PlayerCreatures;
+		for(int th = 0; th < allies.Count; th++)
+		{
+			Creature ally = allies[th];
+			var bombPower = ally.GetPower<TheBombPower>();
+			if (bombPower != null && bombPower.Amount == 1)
+			{
+				damage_from_bomb+= bombPower.DynamicVars.Damage.IntValue;
+			}
+		}
 
 		int num_enemies_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_enemy_damage = 0, num_damage_received_from_cards = 0, minimum_enemy_hitpoints = 999;
 
@@ -770,7 +790,7 @@ public class Patch
 			Creature enemy = enemies[th];
 			int damage_from_poison = (enemy.GetPower<PoisonPower>()?.CalculateTotalDamageNextTurn() ?? 0);
 
-			if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<AdaptablePower>() > 0 || damage_from_poison < enemy.CurrentHp))
+			if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<AdaptablePower>() > 0 || damage_from_poison+damage_from_bomb < enemy.CurrentHp))
 			{
 				num_enemies_survive_this_turn++;
 
@@ -785,11 +805,11 @@ public class Patch
 					{
 						if (intent is AttackIntent attackIntent)
 						{
-							num_enemy_damage += attackIntent.GetTotalDamage(playerCreatures, owner: enemy);
+							num_enemy_damage += attackIntent.GetTotalDamage(allies, owner: enemy);
 						}
 					}
 				}
-				int hp_after_poison = enemy.CurrentHp - damage_from_poison - enemy.GetPowerAmount<PlowPower>() - enemy.GetPowerAmount<ShriekPower>() + enemy.Block;
+				int hp_after_poison = enemy.CurrentHp - damage_from_poison - damage_from_bomb - enemy.GetPowerAmount<PlowPower>() - enemy.GetPowerAmount<ShriekPower>() + enemy.Block;
 				if (hp_after_poison < minimum_enemy_hitpoints)
 				{
 					minimum_enemy_hitpoints = hp_after_poison;
