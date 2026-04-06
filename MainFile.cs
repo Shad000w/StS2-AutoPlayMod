@@ -528,8 +528,8 @@ public class Patch
 			}
 			else if (IsDiscardTypeOfSelect)//discard selection
 			{
-				bool has_flechettes = handPile.Cards.Any(card => card is Flechettes);
-				bool has_any_exhaust_power_card = handPile.Cards.Any(card => (card is Brand || card is BurningPact || card is Scavenge || card is FlakCannon || card is SecondWind || card is Purity) && card.CanPlay());
+				bool has_flechettes = handPile.Cards.Any(card => card is Flechettes && card.CanPlay());
+				bool has_any_exhaust_power_card = handPile.Cards.Any(card => (card is Brand || card is BurningPact || card is Scavenge || card is FlakCannon || card is SecondWind || card is Purity || card is Compact) && card.CanPlay());
 
 				List<CardModel> cards_to_discard_optimally = [];
 
@@ -545,7 +545,7 @@ public class Patch
 					}
 					else if (card.Type > CardType.Power)
 					{
-						if (!has_any_exhaust_power_card && //only consider unplayable cards if we can't exhaust them this round
+						if (!has_any_exhaust_power_card && //only consider status cards if we can't exhaust or transform them this round
 							!card.Keywords.Contains(CardKeyword.Ethereal) && //if the status card is Ethereal then discarding it doesn't make a sense
 							card is not FranticEscape && (card is not Slimed || !card.CanPlay()))//exclude Frantic Escape and Slimed
 						{
@@ -558,7 +558,7 @@ public class Patch
 					}
 				}
 
-				if (cards_to_discard_optimally.Count == prefs.MinSelect)//if there is only one Sly or unplayable card it will discard it automatically - should be always the most optimal choice
+				if (cards_to_discard_optimally.Count == prefs.MinSelect)//if there is only one Sly or stats card it will discard it automatically - should be always the most optimal choice
 				{
 					for (int th = 0; th < cards_to_discard_optimally.Count; th++)
 					{
