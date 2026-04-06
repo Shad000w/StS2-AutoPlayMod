@@ -436,7 +436,7 @@ public class Patch
 	[HarmonyPostfix]
 	private static void AfterTurnStart(Creature __instance, int roundNumber, CombatSide side)
 	{
-		if (__instance.CombatState != null && __instance.IsPlayer && __instance.Player != null && roundNumber > 0 && side != CombatSide.Enemy)
+		if (__instance.CombatState != null && __instance.IsPlayer && __instance.Player != null && roundNumber > 0 && side != CombatSide.Enemy && LocalContext.NetId == __instance.Player.NetId)
 		{
 			int num_enemies_survive_this_turn = 0;
 
