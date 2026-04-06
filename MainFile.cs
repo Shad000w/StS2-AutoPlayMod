@@ -16,6 +16,7 @@ using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Modding;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
@@ -359,7 +360,7 @@ public class Patch
 		{
 			foreach (CardModel item in handPile.Cards)
 			{
-				if ((item.Type <= CardType.Power || item.Id.Entry == "FRANTIC_ESCAPE") && !item.Keywords.Contains(CardKeyword.Retain))
+				if ((item.Type <= CardType.Power || item is FranticEscape) && !item.Keywords.Contains(CardKeyword.Retain))
 				{
 					item.GiveSingleTurnRetain();
 				}
@@ -386,7 +387,7 @@ public class Patch
 		for (int th = 0; th < handPile.Cards.Count && num_to_retain > 0; th++)
 		{
 			CardModel card = handPile.Cards[th];
-			if ((card.Type <= CardType.Power || card.Id.Entry == "FRANTIC_ESCAPE") && !card.Keywords.Contains(CardKeyword.Retain))
+			if ((card.Type <= CardType.Power || card is FranticEscape) && !card.Keywords.Contains(CardKeyword.Retain))
 			{
 				card.GiveSingleTurnRetain();
 				num_to_retain--;
@@ -475,7 +476,7 @@ public class Patch
 				for (int th = 0; th < handPile.Cards.Count; th++)
 				{
 					CardModel card = handPile.Cards[th];
-					if (card.Id.Entry == "FEED")
+					if (card is Feed)
 					{
 						has_feed_card = true;
 					}
@@ -527,79 +528,60 @@ public class Patch
 			}
 			else if (IsDiscardTypeOfSelect)//discard selection
 			{
-				CardModel? first_optimal_card__to_discard = null;
-				bool all_cards_to_discard_optimally_identical = true;
-				int num_sly_cards = 0, num_ethereal_cards_that_cannot_be_played = 0, num_unplayable_cards = 0, num_playable_cards_with_exhaust_power = 0;
+				bool has_flechettes = handPile.Cards.Any(card => card is Flechettes);
+				bool has_any_exhaust_power_card = handPile.Cards.Any(card => (card is Brand || card is BurningPact || card is Scavenge || card is FlakCannon || card is SecondWind || card is Purity) && card.CanPlay());
+
+				List<CardModel> cards_to_discard_optimally = [];
+
 				for (int th = 0; th < handPile.Cards.Count; th++)
 				{
 					CardModel card = handPile.Cards[th];
 					if (card.IsSlyThisTurn)
 					{
-						num_sly_cards++;
-						if (first_optimal_card__to_discard == null) first_optimal_card__to_discard = card;
-						else if (!CardsEqual(first_optimal_card__to_discard, card))
+						if (!has_flechettes)//if Flechettes is in hand do not auto discard Sly cards
 						{
-							all_cards_to_discard_optimally_identical = false;
+							cards_to_discard_optimally.Add(card);
 						}
 					}
-					else if (card.Type > CardType.Power && card.Id.Entry != "FRANTIC_ESCAPE")
+					else if (card.Type > CardType.Power)
 					{
-						num_unplayable_cards++;
-						if (first_optimal_card__to_discard == null) first_optimal_card__to_discard = card;
-						else if (!CardsEqual(first_optimal_card__to_discard, card))
+						if (!has_any_exhaust_power_card && //only consider unplayable cards if we can't exhaust them this round
+							!card.Keywords.Contains(CardKeyword.Ethereal) && //if the status card is Ethereal then discarding it doesn't make a sense
+							card is not FranticEscape && (card is not Slimed || !card.CanPlay()))//exclude Frantic Escape and Slimed
 						{
-							all_cards_to_discard_optimally_identical = false;
+							cards_to_discard_optimally.Add(card);
 						}
 					}
-					else
+					else if(card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay())//if it isn't Sly or status card and the card is ethereal and we can't play it then it should be optimal choice to discard it
 					{
-						if ((card.Id.Entry == "BRAND" || card.Id.Entry == "BURNING_PACT" || card.Id.Entry == "SCAVENGE" || card.Id.Entry == "FLAK_CANNON" || card.Id.Entry == "SECOND_WIND" || card.Id.Entry == "PURITY") && card.CanPlay())
-						{
-							num_playable_cards_with_exhaust_power++;
-						}
-						else if(card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay())
-						{
-							num_ethereal_cards_that_cannot_be_played++;
-							if (first_optimal_card__to_discard == null) first_optimal_card__to_discard = card;
-							else if (!CardsEqual(first_optimal_card__to_discard, card))
-							{
-								all_cards_to_discard_optimally_identical = false;
-							}
-						}
+						cards_to_discard_optimally.Add(card);
 					}
 				}
 
-				int num_cards_to_discard_optimally = num_sly_cards + num_ethereal_cards_that_cannot_be_played;
-
-				if (num_playable_cards_with_exhaust_power == 0)//only consider unplayable cards if we can't exhaust them this round
+				if (cards_to_discard_optimally.Count == prefs.MinSelect)//if there is only one Sly or unplayable card it will discard it automatically - should be always the most optimal choice
 				{
-					num_cards_to_discard_optimally += num_unplayable_cards;
-				}
-
-
-				if (num_cards_to_discard_optimally == prefs.MinSelect)//if there is only one Sly or unplayable card it will discard it automatically - should be always the most optimal choice
-				{
-					for (int th = 0; th < handPile.Cards.Count && num_cards_to_discard_optimally > 0; th++)
+					for (int th = 0; th < cards_to_discard_optimally.Count; th++)
 					{
-						CardModel card = handPile.Cards[th];
-						if (card.IsSlyThisTurn || (num_playable_cards_with_exhaust_power == 0 && (card.Type > CardType.Power && card.Id.Entry != "FRANTIC_ESCAPE")) || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
-						{
-							selected.Add(card);
-							num_cards_to_discard_optimally--;
-						}
+						CardModel card = cards_to_discard_optimally[th];
+						selected.Add(card);
 					}
 				}
-				else if (num_cards_to_discard_optimally > prefs.MinSelect && all_cards_to_discard_optimally_identical)//if all optimally discardable cards are same, discard required amount automatically
+				else if (cards_to_discard_optimally.Count > prefs.MinSelect)
 				{
+					CardModel first = cards_to_discard_optimally[0];
+					for (int th = 1; th < cards_to_discard_optimally.Count; th++)
+					{
+						if (!CardsEqual(first, cards_to_discard_optimally[th]))
+						{
+							return true;
+						}
+					}
+					//if all optimally discardable cards are same, discard required amount automatically
 					int num_to_discard = prefs.MinSelect;
-					for (int th = 0; th < handPile.Cards.Count && num_to_discard > 0; th++)
+					for (int th = 0; th < cards_to_discard_optimally.Count && num_to_discard > 0; th++)
 					{
-						CardModel card = handPile.Cards[th];
-						if (card.IsSlyThisTurn || (num_playable_cards_with_exhaust_power == 0 && (card.Type > CardType.Power && card.Id.Entry != "FRANTIC_ESCAPE")) || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
-						{
-							selected.Add(card);
-							num_to_discard--;
-						}
+						selected.Add(cards_to_discard_optimally[th]);
+						num_to_discard--;
 					}
 				}
 				else
@@ -628,7 +610,7 @@ public class Patch
 				for (int th = 0; th < handPile.Cards.Count; th++)
 				{
 					CardModel card = handPile.Cards[th];
-					if ((card.Type > CardType.Power && card.Id.Entry != "FRANTIC_ESCAPE") || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
+					if ((card.Type > CardType.Power && card is not FranticEscape) || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
 					{
 						num_cards_to_exhaust_optimally++;
 						if (first_optimal_card__to_exhaust == null) first_optimal_card__to_exhaust = card;
@@ -644,7 +626,7 @@ public class Patch
 					for (int th = 0; th < handPile.Cards.Count && num_cards_to_exhaust_optimally > 0; th++)
 					{
 						CardModel card = handPile.Cards[th];
-						if ((card.Type > CardType.Power && card.Id.Entry != "FRANTIC_ESCAPE") || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
+						if ((card.Type > CardType.Power && card is not FranticEscape) || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
 						{
 							selected.Add(card);
 							num_cards_to_exhaust_optimally--;
@@ -657,7 +639,7 @@ public class Patch
 					for (int th = 0; th < handPile.Cards.Count && num_to_discard > 0; th++)
 					{
 						CardModel card = handPile.Cards[th];
-						if ((card.Type > CardType.Power && card.Id.Entry != "FRANTIC_ESCAPE") || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
+						if ((card.Type > CardType.Power && card is not FranticEscape) || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
 						{
 							selected.Add(card);
 							num_to_discard--;
