@@ -977,7 +977,11 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (num_playable_cards == 0 && (pot is StableSerum or BlessingOfTheForge or TouchOfInsanity))//if we have no playable cards in hand, then potions that retains or improve cards in hand are useless
+			else if(handPile.Cards.Count == num_ethereal_cards && pot is StableSerum)//if there is nothing to retain, then Stable Serum is useless
+			{
+				//ignore
+			}
+			else if (num_playable_cards == 0 && (pot is BlessingOfTheForge or TouchOfInsanity))//if we have no playable cards in hand, then potions that retains or improve cards in hand are useless
 			{
 				//ignore
 			}
