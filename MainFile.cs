@@ -893,6 +893,7 @@ public class Patch
 		CardPile drawPile = PileType.Draw.GetPile(player);
 		CardPile discardPile = PileType.Discard.GetPile(player);
 		int total_damage_from_potions = 0;
+		bool no_draw = player.Creature.HasPower<NoDrawPower>();
 
 		//if we got here, we have no cards to play or no energy to play them
 		foreach (PotionModel another_potion in player.Potions)
@@ -906,7 +907,7 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (handPile.Cards.Count >= 10 && (id == "ATTACK_POTION" || id == "COLORLESS_POTION" || id == "POWER_POTION" || id == "SKILL_POTION" || id == "SWIFT POTION" || id == "CLARITY_EXTRACT" || id == "CUNNING_POTION" || id == "KINGS_COURAGE" || id == "DROPLET_OF_PRECOGNITION" || id == "LIQUID_MEMORIES" || id == "OROBIC_ACID" || id == "COSMIC_CONCOCTION"))//if oour hand is fulll, then potions that adds cards are useless
+			else if ((no_draw || handPile.Cards.Count >= 10) && (id == "ATTACK_POTION" || id == "COLORLESS_POTION" || id == "POWER_POTION" || id == "SKILL_POTION" || id == "SWIFT POTION" || id == "CLARITY_EXTRACT" || id == "CUNNING_POTION" || id == "KINGS_COURAGE" || id == "DROPLET_OF_PRECOGNITION" || id == "LIQUID_MEMORIES" || id == "OROBIC_ACID" || id == "COSMIC_CONCOCTION"))//if we can't draw additional cards, then potions that adds cards are useless
 			{
 				//ignore
 			}
