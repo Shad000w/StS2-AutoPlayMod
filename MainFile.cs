@@ -17,6 +17,7 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Modding;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
+using MegaCrit.Sts2.Core.Models.Potions;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
@@ -896,88 +897,87 @@ public class Patch
 		bool no_draw = player.Creature.HasPower<NoDrawPower>();
 
 		//if we got here, we have no cards to play or no energy to play them
-		foreach (PotionModel another_potion in player.Potions)
+		foreach (PotionModel pot in player.Potions)
 		{
-			string id = another_potion.Id.Entry;
-			if (another_potion.Usage == PotionUsage.Automatic)//automatically used potions can be safely ignored
+			if (pot.Usage == PotionUsage.Automatic)//automatically used potions can be safely ignored
 			{
 				//ignore
 			}
-			else if (id == "GIGANTIFICATION_POTION" || id == "SOLDIERS_STEW" || id == "DUPLICATOR")//if we have no playable attack cards in hand, then potions that improve attack cards are useless
+			else if (pot is GigantificationPotion or SoldiersStew or Duplicator)//if we have no playable attack cards in hand, then potions that improve attack cards are useless
 			{
 				//ignore
 			}
-			else if ((no_draw || handPile.Cards.Count >= 10) && (id == "ATTACK_POTION" || id == "COLORLESS_POTION" || id == "POWER_POTION" || id == "SKILL_POTION" || id == "SWIFT POTION" || id == "CLARITY_EXTRACT" || id == "CUNNING_POTION" || id == "KINGS_COURAGE" || id == "DROPLET_OF_PRECOGNITION" || id == "LIQUID_MEMORIES" || id == "OROBIC_ACID" || id == "COSMIC_CONCOCTION"))//if we can't draw additional cards, then potions that adds cards are useless
+			else if ((no_draw || handPile.Cards.Count >= 10) && (pot is AttackPotion or ColorlessPotion or PowerPotion or SkillPotion or SwiftPotion or Clarity or CunningPotion or KingsCourage or DropletOfPrecognition or LiquidMemories or OrobicAcid or CosmicConcoction))//if we can't draw additional cards, then potions that adds cards are useless
 			{
 				//ignore
 			}
-			else if (another_potion.TargetType == TargetType.AnyPlayer && (another_potion.DynamicVars.ContainsKey("StrengthPower") || another_potion.DynamicVars.ContainsKey("DexterityPower")))//if we can't play any card, then potions that adds Strength or Dexterity are useless
+			else if (pot.TargetType == TargetType.AnyPlayer && (pot.DynamicVars.ContainsKey("StrengthPower") || pot.DynamicVars.ContainsKey("DexterityPower")))//if we can't play any card, then potions that adds Strength or Dexterity are useless
 			{
 				//ignore
 			}
-			else if (another_potion.DynamicVars.ContainsKey("VulnerablePower"))//if we can't play any card, then potions that adds Vulnerability are useless
+			else if (pot.DynamicVars.ContainsKey("VulnerablePower"))//if we can't play any card, then potions that adds Vulnerability are useless
 			{
 				//ignore
 			}
-			else if (another_potion.DynamicVars.ContainsKey("Forge"))//if we can't play any card, then potions that Forges are useless
+			else if (pot.DynamicVars.ContainsKey("Forge"))//if we can't play any card, then potions that Forges are useless
 			{
 				//ignore
 			}
-			else if ((player.Creature.Block <= 0 || (num_damage_received_from_cards == 0 && num_enemies_intends_attack == 0)) && id == "FORTIFIER")//if we have no block, or we won't receive any damage then potions that multiply block are useless
+			else if ((player.Creature.Block <= 0 || (num_damage_received_from_cards == 0 && num_enemies_intends_attack == 0)) && pot is Fortifier)//if we have no block, or we won't receive any damage then potions that multiply block are useless
 			{
 				//ignore
 			}
-			else if (num_damage_received_from_cards == 0 && num_enemies_intends_attack == 0 && (another_potion.DynamicVars.ContainsKey("Block") || another_potion.DynamicVars.ContainsKey("PlatingPower") || another_potion.DynamicVars.ContainsKey("BufferPower") || another_potion.DynamicVars.ContainsKey("IntangiblwPower")))//if no enemy intends to attack, then potions that reduces damage taken are useless
+			else if (num_damage_received_from_cards == 0 && num_enemies_intends_attack == 0 && (pot.DynamicVars.ContainsKey("Block") || pot.DynamicVars.ContainsKey("PlatingPower") || pot.DynamicVars.ContainsKey("BufferPower") || pot.DynamicVars.ContainsKey("IntangiblwPower")))//if no enemy intends to attack, then potions that reduces damage taken are useless
 			{
 				//ignore
 			}
-			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0 || num_weak_enemies == num_enemies_intends_attack) && another_potion.DynamicVars.ContainsKey("WeakPower"))//if no enemy intends to attack, then potions that weakens enemy are useless
+			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0 || num_weak_enemies == num_enemies_intends_attack) && pot.DynamicVars.ContainsKey("WeakPower"))//if no enemy intends to attack, then potions that weakens enemy are useless
 			{
 				//ignore
 			}
-			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0) && another_potion.DynamicVars.ContainsKey("DamageDecrease"))//if no enemy intends to attack, then potions that weakens enemy are useless
+			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0) && pot.DynamicVars.ContainsKey("DamageDecrease"))//if no enemy intends to attack, then potions that weakens enemy are useless
 			{
 				//ignore
 			}
-			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0) && (another_potion.TargetType == TargetType.AllEnemies || another_potion.TargetType == TargetType.AnyEnemy || another_potion.TargetType == TargetType.RandomEnemy) && another_potion.DynamicVars.ContainsKey("StrengthPower"))//if no enemy intends to attack, then potions that reduces enemy Strength are useless
+			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0) && (pot.TargetType == TargetType.AllEnemies || pot.TargetType == TargetType.AnyEnemy || pot.TargetType == TargetType.RandomEnemy) && pot.DynamicVars.ContainsKey("StrengthPower"))//if no enemy intends to attack, then potions that reduces enemy Strength are useless
 			{
 				//ignore
 			}
-			else if (player.Creature.CurrentHp >= player.Creature.MaxHp && (another_potion.DynamicVars.ContainsKey("MaxHp") || another_potion.DynamicVars.ContainsKey("HealPercent") || another_potion.DynamicVars.ContainsKey("RegenPower")))//if we have maximum HP, then potions that modify HPs are useless
+			else if (player.Creature.CurrentHp >= player.Creature.MaxHp && (pot.DynamicVars.ContainsKey("MaxHp") || pot.DynamicVars.ContainsKey("HealPercent") || pot.DynamicVars.ContainsKey("RegenPower")))//if we have maximum HP, then potions that modify HPs are useless
 			{
 				//ignore
 			}
-			else if (another_potion.DynamicVars.ContainsKey("Energy") && minimum_energy_needed_to_play_card > another_potion.DynamicVars.Energy.IntValue)//if we have no cards in hand that uses energy or only cards with higher energy cost than we can get, then potions that gives us energy are useless
+			else if (pot.DynamicVars.ContainsKey("Energy") && minimum_energy_needed_to_play_card > pot.DynamicVars.Energy.IntValue)//if we have no cards in hand that uses energy or only cards with higher energy cost than we can get, then potions that gives us energy are useless
 			{
 				//ignore
 			}
-			else if (another_potion.DynamicVars.ContainsKey("Stars") && minimum_stars_needed_to_play_card > another_potion.DynamicVars.Stars.IntValue)//if we have no cards in hand that uses stars or only cards with higher stars cost than we can get, then potions that gives us stars are useless
+			else if (pot.DynamicVars.ContainsKey("Stars") && minimum_stars_needed_to_play_card > pot.DynamicVars.Stars.IntValue)//if we have no cards in hand that uses stars or only cards with higher stars cost than we can get, then potions that gives us stars are useless
 			{
 				//ignore
 			}
-			else if (handPile.Cards.Count == 0 && (id == "ASHWATER" || id == "BOTTLED_POTENTIAL" || id == "GAMBLERS_BREW"))//if we have no cards in hand, then potions that does something with cards in hand are useless
+			else if (handPile.Cards.Count == 0 && (pot is Ashwater or BottledPotential or GamblersBrew))//if we have no cards in hand, then potions that does something with cards in hand are useless
 			{
 				//ignore
 			}
-			else if (drawPile.Cards.Count == 0 && (id == "DISTILLED_CHAOS" || id == "DROPLET_OF_PRECOGNITION"))//if we have no cards in draw pile, then potions that plays cards from draw pile are useless
+			else if (drawPile.Cards.Count == 0 && (pot is DistilledChaos or DropletOfPrecognition))//if we have no cards in draw pile, then potions that plays cards from draw pile are useless
 			{
 				//ignore
 			}
-			else if (discardPile.Cards.Count == 0 && id == "LIQUID_MEMORIES")//if we have no cards in discard pile, then potions that plays cards from discard pile are useless
+			else if (discardPile.Cards.Count == 0 && pot is LiquidMemories)//if we have no cards in discard pile, then potions that plays cards from discard pile are useless
 			{
 				//ignore
 			}
-			else if (num_playable_cards == 0 && (id == "STABLE_SERUM" || id == "BLESSING_OF_THE_FORGE" || id == "TOUCH_OF_INSANITY"))//if we have no playable cards in hand, then potions that retains or improve cards in hand are useless
+			else if (num_playable_cards == 0 && (pot is StableSerum or BlessingOfTheForge or TouchOfInsanity))//if we have no playable cards in hand, then potions that retains or improve cards in hand are useless
 			{
 				//ignore
 			}
-			else if (num_upgradable_cards == 0 && id == "BLESSING_OF_THE_FORGE")//if we have no upgradable cards in hand, then potions that upgrade cards are useless
+			else if (num_upgradable_cards == 0 && pot is BlessingOfTheForge)//if we have no upgradable cards in hand, then potions that upgrade cards are useless
 			{
 				//ignore
 			}
-			else if (another_potion.DynamicVars.ContainsKey("Damage"))//note: damage potions ignore vulnerable and plating
+			else if (pot.DynamicVars.ContainsKey("Damage"))//note: damage potions ignore vulnerable and plating
 			{
-				total_damage_from_potions += another_potion.DynamicVars.Damage.IntValue;
+				total_damage_from_potions += pot.DynamicVars.Damage.IntValue;
 			}
 			else
 			{
