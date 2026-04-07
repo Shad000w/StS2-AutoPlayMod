@@ -906,6 +906,10 @@ public class Patch
 			{
 				//ignore
 			}
+			else if (handPile.Cards.Count >= 10 && (id == "ATTACK_POTION" || id == "COLORLESS_POTION" || id == "POWER_POTION" || id == "SKILL_POTION" || id == "SWIFT POTION" || id == "CLARITY_EXTRACT" || id == "CUNNING_POTION" || id == "KINGS_COURAGE" || id == "DROPLET_OF_PRECOGNITION" || id == "LIQUID_MEMORIES" || id == "OROBIC_ACID" || id == "COSMIC_CONCOCTION"))//if oour hand is fulll, then potions that adds cards are useless
+			{
+				//ignore
+			}
 			else if (another_potion.TargetType == TargetType.AnyPlayer && (another_potion.DynamicVars.ContainsKey("StrengthPower") || another_potion.DynamicVars.ContainsKey("DexterityPower")))//if we can't play any card, then potions that adds Strength or Dexterity are useless
 			{
 				//ignore
