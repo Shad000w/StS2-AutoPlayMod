@@ -592,8 +592,7 @@ public class Patch
 				{
 					for (int th = 0; th < cards_to_discard_optimally.Count; th++)
 					{
-						CardModel card = cards_to_discard_optimally[th];
-						selected.Add(card);
+						selected.Add(cards_to_discard_optimally[th]);
 					}
 				}
 				else if (cards_to_discard_optimally.Count > prefs.MinSelect)
@@ -634,46 +633,40 @@ public class Patch
 			}
 			else if (IsExhaustTypeOfSelect)
 			{
-				CardModel? first_optimal_card__to_exhaust = null;
-				bool all_cards_to_exhaust_optimally_identical = true;
-				int num_cards_to_exhaust_optimally = 0;
+				List<CardModel> cards_to_exhaust_optimally = [];
+
 				for (int th = 0; th < handPile.Cards.Count; th++)
 				{
 					CardModel card = handPile.Cards[th];
-					if ((card.Type > CardType.Power && card is not FranticEscape) || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
+					if (!card.Keywords.Contains(CardKeyword.Ethereal) && ((card.Type > CardType.Power && card is not FranticEscape) || (card is Bombardment or HowlFromBeyond && !card.CanPlay())))
 					{
-						num_cards_to_exhaust_optimally++;
-						if (first_optimal_card__to_exhaust == null) first_optimal_card__to_exhaust = card;
-						else if (!CardsEqual(first_optimal_card__to_exhaust, card))
-						{
-							all_cards_to_exhaust_optimally_identical = false;
-						}
+						cards_to_exhaust_optimally.Add(card);
 					}
 				}
 
-				if (num_cards_to_exhaust_optimally == prefs.MinSelect)//if there is only one Sly or unplayable card it will discard it automatically - should be always the most optimal choice
+				if (cards_to_exhaust_optimally.Count == prefs.MinSelect)
 				{
-					for (int th = 0; th < handPile.Cards.Count && num_cards_to_exhaust_optimally > 0; th++)
+					for (int th = 0; th < cards_to_exhaust_optimally.Count; th++)
 					{
-						CardModel card = handPile.Cards[th];
-						if ((card.Type > CardType.Power && card is not FranticEscape) || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
-						{
-							selected.Add(card);
-							num_cards_to_exhaust_optimally--;
-						}
+						selected.Add(cards_to_exhaust_optimally[th]);
 					}
 				}
-				else if (num_cards_to_exhaust_optimally > prefs.MinSelect && all_cards_to_exhaust_optimally_identical)//if all optimally discardable cards are same, discard required amount automatically
+				else if (cards_to_exhaust_optimally.Count > prefs.MinSelect)//if all optimally exhaustable cards are same, exhaust required amount automatically
 				{
-					int num_to_discard = prefs.MinSelect;
-					for (int th = 0; th < handPile.Cards.Count && num_to_discard > 0; th++)
+					CardModel first = cards_to_exhaust_optimally[0];
+					for (int th = 1; th < cards_to_exhaust_optimally.Count; th++)
 					{
-						CardModel card = handPile.Cards[th];
-						if ((card.Type > CardType.Power && card is not FranticEscape) || (card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay()))
+						if (!CardsEqual(first, cards_to_exhaust_optimally[th]))
 						{
-							selected.Add(card);
-							num_to_discard--;
+							return true;
 						}
+					}
+					//if all optimally discardable cards are same, discard required amount automatically
+					int num_to_exhaust = prefs.MinSelect;
+					for (int th = 0; th < cards_to_exhaust_optimally.Count && num_to_exhaust > 0; th++)
+					{
+						selected.Add(cards_to_exhaust_optimally[th]);
+						num_to_exhaust--;
 					}
 				}
 				else
