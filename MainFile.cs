@@ -496,14 +496,14 @@ public class Patch
 			if (num_enemies_survive_this_turn == 0)//no enemies will survive after turn started
 			{
 				int num_damage_received_from_cards = 0;
-				bool has_feed_card = false;
+				bool has_fatal_card = false;
 
 				for (int th = 0; th < handPile.Cards.Count; th++)
 				{
 					CardModel card = handPile.Cards[th];
-					if (card is Feed)
+					if (card is Feed or TheHunt or HandOfGreed)
 					{
-						has_feed_card = true;
+						has_fatal_card = true;
 					}
 					else if (card.Type > CardType.Power)
 					{
@@ -511,7 +511,7 @@ public class Patch
 					}
 				}
 
-				if (has_feed_card == false && num_damage_received_from_cards <= __instance.Block + __instance.GetPowerAmount<PlatingPower>())
+				if (has_fatal_card == false && num_damage_received_from_cards <= __instance.Block + __instance.GetPowerAmount<PlatingPower>())
 				{
 					//we either have no damage debuffs or we can block them so no reason to play this round further
 					RunManager.Instance.ActionQueueSynchronizer.RequestEnqueue(new EndPlayerTurnAction(__instance.Player, __instance.CombatState.RoundNumber));
@@ -828,14 +828,14 @@ public class Patch
 
 		if (num_enemies_survive_this_turn == 0)//no enemies will survive after this card was played
 		{
-			bool has_feed_card = false;
+			bool has_fatal_card = false;
 
 			for (int th = 0; th < handPile.Cards.Count; th++)
 			{
 				CardModel card = handPile.Cards[th];
-				if (card.Id.Entry == "FEED")
+				if (card is Feed or TheHunt or HandOfGreed)
 				{
-					has_feed_card = true;
+					has_fatal_card = true;
 				}
 				else if (card.Type > CardType.Power)
 				{
@@ -843,7 +843,7 @@ public class Patch
 				}
 			}
 
-			if (has_feed_card == false && num_damage_received_from_cards <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
+			if (has_fatal_card == false && num_damage_received_from_cards <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
 			{
 				//we either have no damage debuffs or we can block them so no reason to play this round further
 				RunManager.Instance.ActionQueueSynchronizer.RequestEnqueue(new EndPlayerTurnAction(player, player.Creature.CombatState.RoundNumber));
