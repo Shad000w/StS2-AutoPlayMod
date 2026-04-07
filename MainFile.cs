@@ -944,7 +944,7 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (num_damage_received_from_cards == 0 && num_enemies_intends_attack == 0 && (pot.DynamicVars.ContainsKey("Block") || pot.DynamicVars.ContainsKey("PlatingPower") || pot.DynamicVars.ContainsKey("BufferPower") || pot.DynamicVars.ContainsKey("IntangiblwPower")))//if no enemy intends to attack, then potions that reduces damage taken are useless
+			else if (num_damage_received_from_cards == 0 && num_enemies_intends_attack == 0 && (pot.DynamicVars.ContainsKey("Block") || pot.DynamicVars.ContainsKey("PlatingPower") || pot.DynamicVars.ContainsKey("BufferPower") || pot.DynamicVars.ContainsKey("IntangiblePower")))//if no enemy intends to attack, then potions that reduces damage taken are useless
 			{
 				//ignore
 			}
