@@ -465,7 +465,7 @@ public class Patch
 	{
 		if (__instance.CombatState != null && __instance.IsPlayer && __instance.Player != null && roundNumber > 0 && side != CombatSide.Enemy && LocalContext.NetId == __instance.Player.NetId)
 		{
-			int num_enemies_survive_this_turn = 0;
+			int num_enemies_survive_this_turn = 0, num_minions_survive_this_turn = 0;
 
 			int damage_from_bomb = 0;
 
@@ -489,12 +489,16 @@ public class Patch
 				if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<AdaptablePower>() > 0 || damage_from_poison + damage_from_bomb < enemy.CurrentHp))
 				{
 					num_enemies_survive_this_turn++;
+					if (enemy.HasPower<MinionPower>())
+					{
+						num_minions_survive_this_turn++;
+					}
 				}
 			}
 
 			CardPile handPile = PileType.Hand.GetPile(__instance.Player);
 
-			if (num_enemies_survive_this_turn == 0)//no enemies will survive after turn started
+			if (num_enemies_survive_this_turn == 0 || num_enemies_survive_this_turn == num_minions_survive_this_turn)//no enemies will survive after turn started
 			{
 				int num_damage_received_from_cards = 0;
 				bool has_fatal_card = false;
@@ -790,7 +794,7 @@ public class Patch
 			}
 		}
 
-		int num_enemies_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_enemy_damage = 0, num_damage_received_from_cards = 0, minimum_enemy_hitpoints = 999;
+		int num_enemies_survive_this_turn = 0, num_minions_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_enemy_damage = 0, num_damage_received_from_cards = 0, minimum_enemy_hitpoints = 999;
 
 		IReadOnlyList<Creature> enemies = player.Creature.CombatState.Enemies;
 		for (int th = 0; th < enemies.Count; th++)
@@ -801,6 +805,11 @@ public class Patch
 			if (enemy.IsAlive && (enemy.GetPowerAmount<ArtifactPower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<AdaptablePower>() > 0 || damage_from_poison+damage_from_bomb < enemy.CurrentHp))
 			{
 				num_enemies_survive_this_turn++;
+
+				if(enemy.HasPower<MinionPower>())
+				{
+					num_minions_survive_this_turn++;
+				}
 
 				if (enemy.Monster?.IntendsToAttack == true)
 				{
@@ -827,7 +836,7 @@ public class Patch
 
 		CardPile handPile = PileType.Hand.GetPile(player);
 
-		if (num_enemies_survive_this_turn == 0)//no enemies will survive after this card was played
+		if (num_enemies_survive_this_turn == 0 || num_enemies_survive_this_turn == num_minions_survive_this_turn)//no enemies will survive after this card was played
 		{
 			bool has_fatal_card = false;
 
