@@ -854,7 +854,7 @@ public class Patch
 			}
 		}
 
-		int num_playable_cards = 0, num_upgradable_cards = 0, num_cards_using_energy = 0, num_cards_using_stars = 0, minimum_energy_needed_to_play_card = 99, minimum_stars_needed_to_play_card = 99;
+		int num_playable_cards = 0, num_upgradable_cards = 0, num_ethereal_cards = 0, num_cards_using_energy = 0, num_cards_using_stars = 0, minimum_energy_needed_to_play_card = 99, minimum_stars_needed_to_play_card = 99;
 
 		for (int th = 0; th < handPile.Cards.Count; th++)
 		{
@@ -874,6 +874,10 @@ public class Patch
 			if (card.IsUpgradable)
 			{
 				num_upgradable_cards++;
+			}
+			if(card.Keywords.Contains(CardKeyword.Ethereal))
+			{
+				num_ethereal_cards++;
 			}
 			if (card_energy_cost > 0 && reason == UnplayableReason.EnergyCostTooHigh)
 			{
@@ -910,6 +914,10 @@ public class Patch
 				//ignore
 			}
 			else if ((no_draw || handPile.Cards.Count >= 10) && (pot is AttackPotion or ColorlessPotion or PowerPotion or SkillPotion or SwiftPotion or Clarity or CunningPotion or KingsCourage or DropletOfPrecognition or LiquidMemories or OrobicAcid or CosmicConcoction))//if we can't draw additional cards, then potions that adds cards are useless
+			{
+				//ignore
+			}
+			else if ((no_draw && handPile.Cards.Count == num_ethereal_cards) && pot is GlowwaterPotion)//if there isn't anything to exhaust and we can't draw additional cards, then Glowwater Potion is useless
 			{
 				//ignore
 			}
