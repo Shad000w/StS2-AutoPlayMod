@@ -459,17 +459,24 @@ public class Patch
 		}
 	}
 
-	[HarmonyPatch(typeof(Creature), nameof(Creature.AfterTurnStart))]
-	[HarmonyPostfix]
-	private static void AfterTurnStart(Creature __instance, int roundNumber, CombatSide side)
+	[HarmonyPatch(typeof(Hook), nameof(Hook.BeforePlayPhaseStart))]
+	[HarmonyPostfix]	
+	private static void BeforePlayPhaseStart(CombatState combatState, Player player, ref Task __result)
 	{
-		if (__instance.CombatState != null && __instance.IsPlayer && __instance.Player != null && roundNumber > 0 && side != CombatSide.Enemy && LocalContext.NetId == __instance.Player.NetId)
+		__result = BeforePlayPhaseFinished(__result, combatState, player);
+	}
+
+	private static async Task BeforePlayPhaseFinished(Task originalTask, CombatState combatState, Player player)
+	{
+		await originalTask;
+
+		if (combatState.RoundNumber > 0 && LocalContext.NetId == player.NetId)
 		{
 			int num_enemies_survive_this_turn = 0, num_minions_survive_this_turn = 0;
 
 			int damage_from_bomb = 0;
 
-			IReadOnlyList<Creature> allies = __instance.CombatState.PlayerCreatures;
+			IReadOnlyList<Creature> allies = combatState.PlayerCreatures;
 			for (int th = 0; th < allies.Count; th++)
 			{
 				Creature ally = allies[th];
@@ -480,7 +487,7 @@ public class Patch
 				}
 			}
 
-			IReadOnlyList<Creature> enemies = __instance.CombatState.Enemies;
+			IReadOnlyList<Creature> enemies = combatState.Enemies;
 			for (int th = 0; th < enemies.Count; th++)
 			{
 				Creature enemy = enemies[th];
@@ -496,7 +503,7 @@ public class Patch
 				}
 			}
 
-			CardPile handPile = PileType.Hand.GetPile(__instance.Player);
+			CardPile handPile = PileType.Hand.GetPile(player);
 
 			if (num_enemies_survive_this_turn == 0 || num_enemies_survive_this_turn == num_minions_survive_this_turn)//no enemies will survive after turn started
 			{
@@ -516,10 +523,10 @@ public class Patch
 					}
 				}
 
-				if (has_fatal_card == false && num_damage_received_from_cards <= __instance.Block + __instance.GetPowerAmount<PlatingPower>())
+				if (has_fatal_card == false && num_damage_received_from_cards <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
 				{
 					//we either have no damage debuffs or we can block them so no reason to play this round further
-					RunManager.Instance.ActionQueueSynchronizer.RequestEnqueue(new EndPlayerTurnAction(__instance.Player, __instance.CombatState.RoundNumber));
+					RunManager.Instance.ActionQueueSynchronizer.RequestEnqueue(new EndPlayerTurnAction(player, combatState.RoundNumber));
 					return;
 				}
 			}
