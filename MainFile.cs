@@ -3,7 +3,6 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Combat;
-using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Cards;
@@ -507,16 +506,12 @@ public class Patch
 			if (num_enemies_survive_this_turn == 0 || num_enemies_survive_this_turn == num_minions_survive_this_turn)//no enemies will survive after turn started
 			{
 				int num_damage_received = 0;
-				bool has_fatal_card = false;
+				bool has_fatal_or_alchemize_card = player.Deck.Cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize);
 
 				for (int th = 0; th < handPile.Cards.Count; th++)
 				{
 					CardModel card = handPile.Cards[th];
-					if (card is Feed or TheHunt or HandOfGreed)
-					{
-						has_fatal_card = true;
-					}
-					else if (card.Type > CardType.Power)
+					if (card.Type > CardType.Power)
 					{
 						if (card.DynamicVars.ContainsKey("Damage"))
 						{
@@ -531,7 +526,7 @@ public class Patch
 
 				num_damage_received += player.Creature.GetPowerAmount<DisintegrationPower>();
 
-				if (has_fatal_card == false && num_damage_received <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
+				if (has_fatal_or_alchemize_card == false && num_damage_received <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
 				{
 					//we either have no damage debuffs or we can block them so no reason to play this round further
 					RunManager.Instance.ActionQueueSynchronizer.RequestEnqueue(new EndPlayerTurnAction(player, combatState.RoundNumber));
@@ -846,16 +841,12 @@ public class Patch
 
 		if (num_enemies_survive_this_turn == 0 || num_enemies_survive_this_turn == num_minions_survive_this_turn)//no enemies will survive after this card was played
 		{
-			bool has_fatal_card = false;
+			bool has_fatal_or_alchemize_card = player.Deck.Cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize);
 
 			for (int th = 0; th < handPile.Cards.Count; th++)
 			{
 				CardModel card = handPile.Cards[th];
-				if (card is Feed or TheHunt or HandOfGreed)
-				{
-					has_fatal_card = true;
-				}
-				else if (card.Type > CardType.Power)
+				if (card.Type > CardType.Power)
 				{
 					if (card.DynamicVars.ContainsKey("Damage"))
 					{
@@ -870,7 +861,7 @@ public class Patch
 
 			num_damage_received += player.Creature.GetPowerAmount<DisintegrationPower>();
 
-			if (has_fatal_card == false && num_damage_received <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
+			if (has_fatal_or_alchemize_card == false && num_damage_received <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
 			{
 				//we either have no damage debuffs or we can block them so no reason to play this round further
 				RunManager.Instance.ActionQueueSynchronizer.RequestEnqueue(new EndPlayerTurnAction(player, player.Creature.CombatState.RoundNumber));
