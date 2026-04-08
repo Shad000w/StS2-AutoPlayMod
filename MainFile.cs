@@ -923,6 +923,7 @@ public class Patch
 
 		CardPile drawPile = PileType.Draw.GetPile(player);
 		CardPile discardPile = PileType.Discard.GetPile(player);
+		bool any_playable_card_in_draw_pile = drawPile.Cards.Any(card => card.Keywords.Contains(CardKeyword.Unplayable) == false);
 		bool any_playable_card_in_discard_pile = discardPile.Cards.Any(card => card.Keywords.Contains(CardKeyword.Unplayable) == false);
 		int total_damage_from_potions = 0;
 		int num_cards_played_this_turn = CombatManager.Instance.History.CardPlaysStarted.Count(e =>	e.HappenedThisTurn(player.Creature.CombatState) &&e.CardPlay.Card.Owner.Creature == player.Creature);
@@ -941,7 +942,7 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (no_play && pot is SneckoOil)//if we can't play any more cards this round then SneckoOil is useless
+			else if (no_play && pot is SneckoOil or EnergyPotion or StarPotion)//if we can't play any more cards this round then potions that allows to play cards in hand are useless
 			{
 				//ignore
 			}
@@ -997,11 +998,15 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (handPile.Cards.Count == 0 && (pot is Ashwater or BottledPotential or GamblersBrew))//if we have no cards in hand, then potions that does something with cards in hand are useless
+			else if ((handPile.Cards.Count == 0 || (handPile.Cards.Count == num_ethereal_cards && (no_draw || no_play))) && pot is GamblersBrew)//if there are only ethereal cards in hand, and we can't draw any more cards then Gambler's Brew is useless
 			{
 				//ignore
 			}
-			else if (drawPile.Cards.Count == 0 && (pot is DistilledChaos or DropletOfPrecognition))//if we have no cards in draw pile, then potions that plays cards from draw pile are useless
+			else if (handPile.Cards.Count == 0 && (pot is Ashwater or BottledPotential))//if we have no cards in hand, then potions that does something with cards in hand are useless
+			{
+				//ignore
+			}
+			else if ((drawPile.Cards.Count == 0 || !any_playable_card_in_draw_pile) && (pot is DistilledChaos or DropletOfPrecognition))//if we have no cards in draw pile, then potions that plays cards from draw pile are useless
 			{
 				//ignore
 			}
@@ -1009,7 +1014,7 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (handPile.Cards.Count == num_ethereal_cards && pot is StableSerum)//if there is nothing to retain, then Stable Serum is useless
+			else if (handPile.Cards.Count == num_ethereal_cards && (pot is StableSerum or Ashwater))//if there are only ethereal cards in hand, then potions that retain or exhaust are useless
 			{
 				//ignore
 			}
