@@ -920,7 +920,9 @@ public class Patch
 		CardPile drawPile = PileType.Draw.GetPile(player);
 		CardPile discardPile = PileType.Discard.GetPile(player);
 		int total_damage_from_potions = 0;
-		bool no_draw = player.Creature.HasPower<NoDrawPower>() || (player.Creature.HasPower<RingingPower>() && CombatManager.Instance.History.CardPlaysStarted.Any((CardPlayStartedEntry e) => e.HappenedThisTurn(player.Creature.CombatState) && e.CardPlay.Card.Owner.Creature == player.Creature));
+		int num_cards_played_this_turn = CombatManager.Instance.History.CardPlaysStarted.Count(e =>	e.HappenedThisTurn(player.Creature.CombatState) &&e.CardPlay.Card.Owner.Creature == player.Creature);
+		var sloth = player.Creature.GetPower<SlothPower>();
+		bool no_draw = player.Creature.HasPower<NoDrawPower>() || (player.Creature.HasPower<RingingPower>() && num_cards_played_this_turn > 0) || (sloth != null && num_cards_played_this_turn >= sloth.Amount);
 
 		//if we got here, we have no cards to play or no energy to play them
 		foreach (PotionModel pot in player.Potions)
