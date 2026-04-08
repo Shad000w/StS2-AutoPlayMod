@@ -3,6 +3,7 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Cards;
@@ -919,7 +920,7 @@ public class Patch
 		CardPile drawPile = PileType.Draw.GetPile(player);
 		CardPile discardPile = PileType.Discard.GetPile(player);
 		int total_damage_from_potions = 0;
-		bool no_draw = player.Creature.HasPower<NoDrawPower>();
+		bool no_draw = player.Creature.HasPower<NoDrawPower>() || (player.Creature.HasPower<RingingPower>() && CombatManager.Instance.History.CardPlaysStarted.Any((CardPlayStartedEntry e) => e.HappenedThisTurn(player.Creature.CombatState) && e.CardPlay.Card.Owner.Creature == player.Creature));
 
 		//if we got here, we have no cards to play or no energy to play them
 		foreach (PotionModel pot in player.Potions)
