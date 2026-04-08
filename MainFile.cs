@@ -926,7 +926,8 @@ public class Patch
 		int total_damage_from_potions = 0;
 		int num_cards_played_this_turn = CombatManager.Instance.History.CardPlaysStarted.Count(e =>	e.HappenedThisTurn(player.Creature.CombatState) &&e.CardPlay.Card.Owner.Creature == player.Creature);
 		var sloth = player.Creature.GetPower<SlothPower>();
-		bool no_draw = player.Creature.HasPower<NoDrawPower>() || (player.Creature.HasPower<RingingPower>() && num_cards_played_this_turn > 0) || (sloth != null && num_cards_played_this_turn >= sloth.Amount);
+		bool no_play = (player.Creature.HasPower<RingingPower>() && num_cards_played_this_turn > 0) || (sloth != null && num_cards_played_this_turn >= sloth.Amount);
+		bool no_draw = player.Creature.HasPower<NoDrawPower>();
 
 		//if we got here, we have no cards to play or no energy to play them
 		foreach (PotionModel pot in player.Potions)
@@ -939,11 +940,15 @@ public class Patch
 			{
 				//ignore
 			}
-			else if ((no_draw || handPile.Cards.Count >= 10) && (pot is AttackPotion or ColorlessPotion or PowerPotion or SkillPotion or SwiftPotion or Clarity or CunningPotion or KingsCourage or DropletOfPrecognition or LiquidMemories or OrobicAcid or CosmicConcoction))//if we can't draw additional cards, then potions that adds cards are useless
+			else if (no_play && pot is SneckoOil)//if we can't play any more cards this round then SneckoOil is useless
 			{
 				//ignore
 			}
-			else if ((no_draw && handPile.Cards.Count == num_ethereal_cards) && pot is GlowwaterPotion)//if there isn't anything to exhaust and we can't draw additional cards, then Glowwater Potion is useless
+			else if ((no_draw || no_play || handPile.Cards.Count >= 10) && (pot is AttackPotion or ColorlessPotion or PowerPotion or SkillPotion or SwiftPotion or Clarity or CunningPotion or KingsCourage or DropletOfPrecognition or LiquidMemories or OrobicAcid or CosmicConcoction))//if we can't draw additional cards, then potions that adds cards are useless
+			{
+				//ignore
+			}
+			else if (((no_draw || no_play) && handPile.Cards.Count == num_ethereal_cards) && pot is GlowwaterPotion)//if there isn't anything to exhaust and we can't draw additional cards, then Glowwater Potion is useless
 			{
 				//ignore
 			}
