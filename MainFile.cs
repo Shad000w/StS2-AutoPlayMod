@@ -19,6 +19,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Potions;
 using MegaCrit.Sts2.Core.Models.Powers;
+using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
@@ -471,6 +472,14 @@ public class Patch
 		await originalTask;
 		if (combatState.RoundNumber > 0 && LocalContext.NetId == player.NetId)
 		{
+			var relicPaelsEye = player.Relics.First(relic => relic is PaelsEye);
+			if (relicPaelsEye != null)
+			{
+				var field = AccessTools.Field(typeof(PaelsEye), "_usedThisCombat");
+				var usedThisCombat = field.GetValue(relicPaelsEye);
+				if (usedThisCombat == null || (bool)usedThisCombat == false) return;
+			}
+
 			int num_enemies_survive_this_turn = 0, num_minions_survive_this_turn = 0;
 
 			int damage_from_bomb = 0;
