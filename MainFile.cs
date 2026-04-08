@@ -533,7 +533,7 @@ public class Patch
 					}
 				}
 
-				num_damage_received += player.Creature.GetPowerAmount<DisintegrationPower>();
+				num_damage_received += player.Creature.GetPowerAmount<DisintegrationPower>() + player.Creature.GetPowerAmount<ConstrictPower>();
 
 				if (has_fatal_or_alchemize_card == false && num_damage_received <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
 				{
@@ -868,7 +868,7 @@ public class Patch
 				}
 			}
 
-			num_damage_received += player.Creature.GetPowerAmount<DisintegrationPower>();
+			num_damage_received += player.Creature.GetPowerAmount<DisintegrationPower>() + player.Creature.GetPowerAmount<ConstrictPower>();
 
 			if (has_fatal_or_alchemize_card == false && num_damage_received <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
 			{
