@@ -886,7 +886,7 @@ public class Patch
 			{
 				return;
 			}
-			else if (card.Type <= CardType.Power)
+			else if ((reason & (UnplayableReason.HasUnplayableKeyword | UnplayableReason.BlockedByHook | UnplayableReason.BlockedByCardLogic)) == 0)
 			{
 				num_playable_cards++;
 			}
