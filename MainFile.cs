@@ -506,7 +506,7 @@ public class Patch
 
 			if (num_enemies_survive_this_turn == 0 || num_enemies_survive_this_turn == num_minions_survive_this_turn)//no enemies will survive after turn started
 			{
-				int num_damage_received_from_cards = 0;
+				int num_damage_received = 0;
 				bool has_fatal_card = false;
 
 				for (int th = 0; th < handPile.Cards.Count; th++)
@@ -520,16 +520,18 @@ public class Patch
 					{
 						if (card.DynamicVars.ContainsKey("Damage"))
 						{
-							num_damage_received_from_cards += card.DynamicVars.Damage.IntValue;
+							num_damage_received += card.DynamicVars.Damage.IntValue;
 						}
 						else if(card.DynamicVars.ContainsKey("HpLoss"))
 						{
-							num_damage_received_from_cards += card.DynamicVars.HpLoss.IntValue;
+							num_damage_received += card.DynamicVars.HpLoss.IntValue;
 						}
 					}
 				}
 
-				if (has_fatal_card == false && num_damage_received_from_cards <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
+				num_damage_received += player.Creature.GetPowerAmount<DisintegrationPower>();
+
+				if (has_fatal_card == false && num_damage_received <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
 				{
 					//we either have no damage debuffs or we can block them so no reason to play this round further
 					RunManager.Instance.ActionQueueSynchronizer.RequestEnqueue(new EndPlayerTurnAction(player, combatState.RoundNumber));
@@ -800,7 +802,7 @@ public class Patch
 			}
 		}
 
-		int num_enemies_survive_this_turn = 0, num_minions_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_enemy_damage = 0, num_damage_received_from_cards = 0, minimum_enemy_hitpoints = 999;
+		int num_enemies_survive_this_turn = 0, num_minions_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_enemy_damage = 0, num_damage_received= 0, minimum_enemy_hitpoints = 999;
 
 		IReadOnlyList<Creature> enemies = player.Creature.CombatState.Enemies;
 		for (int th = 0; th < enemies.Count; th++)
@@ -857,16 +859,18 @@ public class Patch
 				{
 					if (card.DynamicVars.ContainsKey("Damage"))
 					{
-						num_damage_received_from_cards += card.DynamicVars.Damage.IntValue;
+						num_damage_received += card.DynamicVars.Damage.IntValue;
 					}
 					else if (card.DynamicVars.ContainsKey("HpLoss"))
 					{
-						num_damage_received_from_cards += card.DynamicVars.HpLoss.IntValue;
+						num_damage_received += card.DynamicVars.HpLoss.IntValue;
 					}
 				}
 			}
 
-			if (has_fatal_card == false && num_damage_received_from_cards <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
+			num_damage_received += player.Creature.GetPowerAmount<DisintegrationPower>();
+
+			if (has_fatal_card == false && num_damage_received <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
 			{
 				//we either have no damage debuffs or we can block them so no reason to play this round further
 				RunManager.Instance.ActionQueueSynchronizer.RequestEnqueue(new EndPlayerTurnAction(player, player.Creature.CombatState.RoundNumber));
@@ -955,11 +959,11 @@ public class Patch
 			{
 				//ignore
 			}
-			else if ((player.Creature.Block <= 0 || (num_damage_received_from_cards == 0 && num_enemies_intends_attack == 0)) && pot is Fortifier)//if we have no block, or we won't receive any damage then potions that multiply block are useless
+			else if ((player.Creature.Block <= 0 || (num_damage_received == 0 && num_enemies_intends_attack == 0)) && pot is Fortifier)//if we have no block, or we won't receive any damage then potions that multiply block are useless
 			{
 				//ignore
 			}
-			else if (num_damage_received_from_cards == 0 && num_enemies_intends_attack == 0 && (pot.DynamicVars.ContainsKey("Block") || pot.DynamicVars.ContainsKey("PlatingPower") || pot.DynamicVars.ContainsKey("BufferPower") || pot.DynamicVars.ContainsKey("IntangiblePower")))//if no enemy intends to attack, then potions that reduces damage taken are useless
+			else if (num_damage_received == 0 && num_enemies_intends_attack == 0 && (pot.DynamicVars.ContainsKey("Block") || pot.DynamicVars.ContainsKey("PlatingPower") || pot.DynamicVars.ContainsKey("BufferPower") || pot.DynamicVars.ContainsKey("IntangiblePower")))//if no enemy intends to attack, then potions that reduces damage taken are useless
 			{
 				//ignore
 			}
