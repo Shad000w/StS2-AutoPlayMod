@@ -942,7 +942,7 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (no_play && pot is SneckoOil or EnergyPotion or StarPotion)//if we can't play any more cards this round then potions that allows to play cards in hand are useless
+			else if (no_play && pot is SneckoOil or EnergyPotion or StarPotion or RadiantTincture)//if we can't play any more cards this round then potions that allows to play cards in hand are useless
 			{
 				//ignore
 			}
