@@ -472,7 +472,7 @@ public class Patch
 		await originalTask;
 		if (combatState.RoundNumber > 0 && LocalContext.NetId == player.NetId)
 		{
-			var relicPaelsEye = player.Relics.First(relic => relic is PaelsEye);
+			var relicPaelsEye = player.Relics.FirstOrDefault(relic => relic is PaelsEye);
 			if (relicPaelsEye != null)
 			{
 				var field = AccessTools.Field(typeof(PaelsEye), "_usedThisCombat");
