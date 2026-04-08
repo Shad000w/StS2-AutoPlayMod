@@ -923,6 +923,7 @@ public class Patch
 
 		CardPile drawPile = PileType.Draw.GetPile(player);
 		CardPile discardPile = PileType.Discard.GetPile(player);
+		bool any_playable_card_in_discard_pile = discardPile.Cards.Any(card => card.Keywords.Contains(CardKeyword.Unplayable) == false);
 		int total_damage_from_potions = 0;
 		int num_cards_played_this_turn = CombatManager.Instance.History.CardPlaysStarted.Count(e =>	e.HappenedThisTurn(player.Creature.CombatState) &&e.CardPlay.Card.Owner.Creature == player.Creature);
 		var sloth = player.Creature.GetPower<SlothPower>();
@@ -1004,11 +1005,11 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (discardPile.Cards.Count == 0 && pot is LiquidMemories)//if we have no cards in discard pile, then potions that plays cards from discard pile are useless
+			else if ((discardPile.Cards.Count == 0 || !any_playable_card_in_discard_pile) && pot is LiquidMemories)//if we have no cards in discard pile, then potions that plays cards from discard pile are useless
 			{
 				//ignore
 			}
-			else if(handPile.Cards.Count == num_ethereal_cards && pot is StableSerum)//if there is nothing to retain, then Stable Serum is useless
+			else if (handPile.Cards.Count == num_ethereal_cards && pot is StableSerum)//if there is nothing to retain, then Stable Serum is useless
 			{
 				//ignore
 			}
