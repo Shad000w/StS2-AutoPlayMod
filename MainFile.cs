@@ -469,7 +469,6 @@ public class Patch
 	private static async Task BeforePlayPhaseFinished(Task originalTask, CombatState combatState, Player player)
 	{
 		await originalTask;
-
 		if (combatState.RoundNumber > 0 && LocalContext.NetId == player.NetId)
 		{
 			int num_enemies_survive_this_turn = 0, num_minions_survive_this_turn = 0;
@@ -486,7 +485,6 @@ public class Patch
 					damage_from_bomb += bombPower.DynamicVars.Damage.IntValue;
 				}
 			}
-
 			IReadOnlyList<Creature> enemies = combatState.Enemies;
 			for (int th = 0; th < enemies.Count; th++)
 			{
@@ -519,7 +517,14 @@ public class Patch
 					}
 					else if (card.Type > CardType.Power)
 					{
-						num_damage_received_from_cards += card.DynamicVars.Damage.IntValue;
+						if (card.DynamicVars.ContainsKey("Damage"))
+						{
+							num_damage_received_from_cards += card.DynamicVars.Damage.IntValue;
+						}
+						else if(card.DynamicVars.ContainsKey("HpLoss"))
+						{
+							num_damage_received_from_cards += card.DynamicVars.HpLoss.IntValue;
+						}
 					}
 				}
 
@@ -849,7 +854,14 @@ public class Patch
 				}
 				else if (card.Type > CardType.Power)
 				{
-					num_damage_received_from_cards += card.DynamicVars.Damage.IntValue;
+					if (card.DynamicVars.ContainsKey("Damage"))
+					{
+						num_damage_received_from_cards += card.DynamicVars.Damage.IntValue;
+					}
+					else if (card.DynamicVars.ContainsKey("HpLoss"))
+					{
+						num_damage_received_from_cards += card.DynamicVars.HpLoss.IntValue;
+					}
 				}
 			}
 
