@@ -480,6 +480,15 @@ public class Patch
 				if (usedThisCombat == null || (bool)usedThisCombat == false) return;
 			}
 
+			if(player.Relics.Any(relic => relic is PenNib or Nunchaku or TuningFork))//only end turn automatically if there are no card counting relics
+			{
+				return;
+			}
+			else if(player.Deck.Cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize))
+			{
+				return;
+			}
+
 			int num_enemies_survive_this_turn = 0, num_minions_survive_this_turn = 0;
 
 			int damage_from_bomb = 0;
@@ -515,7 +524,6 @@ public class Patch
 			if (num_enemies_survive_this_turn == 0 || num_enemies_survive_this_turn == num_minions_survive_this_turn)//no enemies will survive after turn started
 			{
 				int num_damage_received = 0;
-				bool has_fatal_or_alchemize_card = player.Deck.Cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize);
 
 				for (int th = 0; th < handPile.Cards.Count; th++)
 				{
@@ -535,7 +543,7 @@ public class Patch
 
 				num_damage_received += player.Creature.GetPowerAmount<DisintegrationPower>() + player.Creature.GetPowerAmount<ConstrictPower>();
 
-				if (has_fatal_or_alchemize_card == false && num_damage_received <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
+				if (num_damage_received <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
 				{
 					//we either have no damage debuffs or we can block them so no reason to play this round further
 					RunManager.Instance.ActionQueueSynchronizer.RequestEnqueue(new EndPlayerTurnAction(player, combatState.RoundNumber));
@@ -850,6 +858,7 @@ public class Patch
 
 		if (num_enemies_survive_this_turn == 0 || num_enemies_survive_this_turn == num_minions_survive_this_turn)//no enemies will survive after this card was played
 		{
+			bool has_any_card_counting_relic = player.Relics.Any(relic => relic is PenNib or Nunchaku or TuningFork);
 			bool has_fatal_or_alchemize_card = player.Deck.Cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize);
 
 			for (int th = 0; th < handPile.Cards.Count; th++)
@@ -870,7 +879,7 @@ public class Patch
 
 			num_damage_received += player.Creature.GetPowerAmount<DisintegrationPower>() + player.Creature.GetPowerAmount<ConstrictPower>();
 
-			if (has_fatal_or_alchemize_card == false && num_damage_received <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
+			if (!has_fatal_or_alchemize_card && !has_any_card_counting_relic && num_damage_received <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
 			{
 				//we either have no damage debuffs or we can block them so no reason to play this round further
 				RunManager.Instance.ActionQueueSynchronizer.RequestEnqueue(new EndPlayerTurnAction(player, player.Creature.CombatState.RoundNumber));
