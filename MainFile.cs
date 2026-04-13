@@ -818,6 +818,7 @@ public class Patch
 		}
 
 		int num_enemies_survive_this_turn = 0, num_minions_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_enemy_damage = 0, num_damage_received= 0, minimum_enemy_hitpoints = 999;
+		bool doom_potion_useful = false;
 
 		IReadOnlyList<Creature> enemies = player.Creature.CombatState.Enemies;
 		for (int th = 0; th < enemies.Count; th++)
@@ -832,6 +833,10 @@ public class Patch
 				if(enemy.HasPower<MinionPower>())
 				{
 					num_minions_survive_this_turn++;
+				}
+				if(enemy.GetPowerAmount<DoomPower>() < enemy.CurrentHp)
+				{
+					doom_potion_useful = true;
 				}
 
 				if (enemy.Monster?.IntendsToAttack == true)
@@ -1037,6 +1042,10 @@ public class Patch
 			else if (num_upgradable_cards == 0 && pot is BlessingOfTheForge)//if we have no upgradable cards in hand, then potions that upgrade cards are useless
 			{
 				//ignore
+			}
+			else if (!doom_potion_useful && pot is PotionOfDoom)//if all enemies have more doom then their HP already, then doom potion is useless
+			{
+				//potion
 			}
 			else if (pot.DynamicVars.ContainsKey("Damage"))//note: damage potions ignore vulnerable and plating
 			{
