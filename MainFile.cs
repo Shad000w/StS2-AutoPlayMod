@@ -1060,25 +1060,23 @@ public class Patch
 			}
 		}
 
-		if (total_damage_from_potions > 0 && minimum_enemy_hitpoints <= total_damage_from_potions)//if we can't kill any enemy with our potions, then potions that deals damage are useless
+		if (total_damage_from_potions > 0)//if we can't kill any enemy with our potions, then potions that deals damage are useless
 		{
-			/*
-			foreach (PotionModel another_potion in player.Potions)
+			for (int th = 0; th < remaining_enemies_alive.Count; th++)
 			{
-				if (another_potion.DynamicVars.ContainsKey("Damage"))
+				int damage_from_potions_to_this_enemy = total_damage_from_potions;
+				var (enemy, remaining_hp) = remaining_enemies_alive[0];
+				var hardenedShell = enemy.GetPower<HardenedShellPower>();
+				if (hardenedShell != null)
 				{
-					NPotionContainer? container = NRun.Instance?.GlobalUi.TopBar.PotionContainer;
-					var holders = Traverse.Create(container).Field<List<NPotionHolder>>("_holders").Value;
-
-					var nPotionHolder = holders?.FirstOrDefault(n => n.Potion != null && n.Potion.Model == another_potion);
-
-					var npotion = nPotionHolder?.Potion;
-
-					Traverse.Create(npotion).Method("DoFlash").GetValue();
+					if (hardenedShell.DisplayAmount > 0) return;//if Hardened Shell blocked all damage this round then end turn automatically
+					break;
+				}
+				if (enemy.IsAlive && remaining_hp <= total_damage_from_potions && hardenedShell == null)
+				{
+					return;
 				}
 			}
-			*/
-			return;
 		}
 
 		//if it falls here, we have no cards to play at all and no potions which would have sense to use, then end turn automatically
