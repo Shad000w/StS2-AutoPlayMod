@@ -301,6 +301,8 @@ public class Patch
 		{
 			int num_enemies = 0, num_enemies_with_same_damage_modifiers = 0;
 			Creature? first = null;
+			bool is_vulnerable = false, is_debilitated = false, is_fluttery = false, is_slippery = false;
+			int hardtokill_amount = 0;
 			foreach (Creature enemy in __instance.CardModel.CombatState.HittableEnemies)
 			{ 
 				if(enemy.IsAlive)
@@ -312,8 +314,13 @@ public class Patch
 						{
 							first = enemy;
 							num_enemies_with_same_damage_modifiers++;
+							is_vulnerable = enemy.HasPower<VulnerablePower>();
+							is_debilitated = enemy.HasPower<DebilitatePower>();
+							hardtokill_amount = enemy.GetPowerAmount<HardToKillPower>();
+							is_fluttery = enemy.HasPower<FlutterPower>();
+							is_slippery = enemy.HasPower<SlipperyPower>();
 						}
-						else if(enemy.HasPower<SlipperyPower>() == first.HasPower<SlipperyPower>() && enemy.HasPower<VulnerablePower>() == first.HasPower<VulnerablePower>() && enemy.GetPowerAmount<HardToKillPower>() == first.GetPowerAmount<HardToKillPower>() && enemy.HasPower<FlutterPower>() == first.HasPower<FlutterPower>())
+						else if(enemy.HasPower<SlipperyPower>() == is_slippery && enemy.HasPower<VulnerablePower>() == is_vulnerable && enemy.GetPowerAmount<HardToKillPower>() == hardtokill_amount && enemy.HasPower<FlutterPower>() == is_fluttery && (!is_vulnerable || is_debilitated == enemy.HasPower<SlipperyPower>()))
 						{
 							num_enemies_with_same_damage_modifiers++;
 						}						
