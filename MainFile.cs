@@ -824,7 +824,7 @@ public class Patch
 			}
 		}
 
-		int num_enemies_survive_this_turn = 0, num_minions_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_enemy_damage = 0, num_damage_received = 0;
+		int num_enemies_survive_this_turn = 0, num_minions_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_damage_received = 0;
 		List<(Creature creature, int value)> remaining_enemies_alive = [];
 		bool doom_potion_useful = false;
 
@@ -837,8 +837,9 @@ public class Patch
 			if (enemy.IsAlive && (enemy.Monster?.Id.Entry == "DOOR" || enemy.GetPowerAmount<StockPower>() > 0 || enemy.GetPowerAmount<SurprisePower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<AdaptablePower>() > 0 || damage_from_poison+damage_from_bomb < enemy.CurrentHp))
 			{
 				num_enemies_survive_this_turn++;
+				int num_enemy_damage = 0;
 
-				if(enemy.HasPower<MinionPower>())
+				if (enemy.HasPower<MinionPower>())
 				{
 					num_minions_survive_this_turn++;
 				}
@@ -866,6 +867,7 @@ public class Patch
 				if (hp_after_poison > 0)
 				{
 					remaining_enemies_alive.Add((enemy, hp_after_poison));
+					num_damage_received += num_enemy_damage;
 				}
 			}
 		}
@@ -1000,15 +1002,15 @@ public class Patch
 			{
 				//ignore
 			}
-			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0 || num_damage_received <= 0 || num_weak_enemies == num_enemies_intends_attack) && pot.DynamicVars.ContainsKey("WeakPower"))//if no enemy intends to attack, then potions that weakens enemy are useless
+			else if ((num_enemies_intends_attack == 0 || num_damage_received <= 0 || num_weak_enemies == num_enemies_intends_attack) && pot.DynamicVars.ContainsKey("WeakPower"))//if no enemy intends to attack, then potions that weakens enemy are useless
 			{
 				//ignore
 			}
-			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0 || num_damage_received <= 0) && pot.DynamicVars.ContainsKey("DamageDecrease"))//if no enemy intends to attack, then potions that weakens enemy are useless
+			else if ((num_enemies_intends_attack == 0 || num_damage_received <= 0) && pot.DynamicVars.ContainsKey("DamageDecrease"))//if no enemy intends to attack, then potions that weakens enemy are useless
 			{
 				//ignore
 			}
-			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0 || num_damage_received <= 0) && (pot.TargetType == TargetType.AllEnemies || pot.TargetType == TargetType.AnyEnemy || pot.TargetType == TargetType.RandomEnemy) && pot.DynamicVars.ContainsKey("StrengthPower"))//if no enemy intends to attack, then potions that reduces enemy Strength are useless
+			else if ((num_enemies_intends_attack == 0 || num_damage_received <= 0) && (pot.TargetType == TargetType.AllEnemies || pot.TargetType == TargetType.AnyEnemy || pot.TargetType == TargetType.RandomEnemy) && pot.DynamicVars.ContainsKey("StrengthPower"))//if no enemy intends to attack, then potions that reduces enemy Strength are useless
 			{
 				//ignore
 			}
