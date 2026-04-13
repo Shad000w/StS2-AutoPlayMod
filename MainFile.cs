@@ -817,7 +817,8 @@ public class Patch
 			}
 		}
 
-		int num_enemies_survive_this_turn = 0, num_minions_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_enemy_damage = 0, num_damage_received= 0, minimum_enemy_hitpoints = 999;
+		int num_enemies_survive_this_turn = 0, num_minions_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_enemy_damage = 0, num_damage_received = 0;
+		List<(Creature creature, int value)> remaining_enemies_alive = [];
 		bool doom_potion_useful = false;
 
 		IReadOnlyList<Creature> enemies = player.Creature.CombatState.Enemies;
@@ -855,39 +856,40 @@ public class Patch
 					}
 				}
 				int hp_after_poison = enemy.CurrentHp - damage_from_poison - damage_from_bomb - enemy.GetPowerAmount<PlowPower>() - enemy.GetPowerAmount<ShriekPower>() + enemy.Block;
-				if (hp_after_poison < minimum_enemy_hitpoints)
+				if (hp_after_poison > 0)
 				{
-					minimum_enemy_hitpoints = hp_after_poison;
+					remaining_enemies_alive.Add((enemy, hp_after_poison));
 				}
 			}
 		}
 
 		CardPile handPile = PileType.Hand.GetPile(player);
 
+		for (int th = 0; th < handPile.Cards.Count; th++)
+		{
+			CardModel card = handPile.Cards[th];
+			if (card.Type > CardType.Power)
+			{
+				if (card.DynamicVars.ContainsKey("Damage"))
+				{
+					num_damage_received += card.DynamicVars.Damage.IntValue;
+				}
+				else if (card.DynamicVars.ContainsKey("HpLoss"))
+				{
+					num_damage_received += card.DynamicVars.HpLoss.IntValue;
+				}
+			}
+		}
+
+		num_damage_received += player.Creature.GetPowerAmount<DisintegrationPower>() + player.Creature.GetPowerAmount<ConstrictPower>();
+		num_damage_received -= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>();
+
 		if (num_enemies_survive_this_turn == 0 || num_enemies_survive_this_turn == num_minions_survive_this_turn)//no enemies will survive after this card was played
 		{
 			bool has_any_card_counting_relic = player.Relics.Any(relic => relic is PenNib or Nunchaku or TuningFork);
 			bool has_fatal_or_alchemize_card = player.Deck.Cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize);
 
-			for (int th = 0; th < handPile.Cards.Count; th++)
-			{
-				CardModel card = handPile.Cards[th];
-				if (card.Type > CardType.Power)
-				{
-					if (card.DynamicVars.ContainsKey("Damage"))
-					{
-						num_damage_received += card.DynamicVars.Damage.IntValue;
-					}
-					else if (card.DynamicVars.ContainsKey("HpLoss"))
-					{
-						num_damage_received += card.DynamicVars.HpLoss.IntValue;
-					}
-				}
-			}
-
-			num_damage_received += player.Creature.GetPowerAmount<DisintegrationPower>() + player.Creature.GetPowerAmount<ConstrictPower>();
-
-			if (!has_fatal_or_alchemize_card && !has_any_card_counting_relic && num_damage_received <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
+			if (!has_fatal_or_alchemize_card && !has_any_card_counting_relic && num_damage_received <= 0)
 			{
 				//we either have no damage debuffs or we can block them so no reason to play this round further
 				RunManager.Instance.ActionQueueSynchronizer.RequestEnqueue(new EndPlayerTurnAction(player, player.Creature.CombatState.RoundNumber));
@@ -983,23 +985,23 @@ public class Patch
 			{
 				//ignore
 			}
-			else if ((player.Creature.Block <= 0 || (num_damage_received == 0 && num_enemies_intends_attack == 0)) && pot is Fortifier)//if we have no block, or we won't receive any damage then potions that multiply block are useless
+			else if ((player.Creature.Block <= 0 || num_damage_received <= 0 || num_enemies_intends_attack == 0) && pot is Fortifier)//if we have no block, or we won't receive any damage then potions that multiply block are useless
 			{
 				//ignore
 			}
-			else if (num_damage_received == 0 && num_enemies_intends_attack == 0 && (pot.DynamicVars.ContainsKey("Block") || pot.DynamicVars.ContainsKey("PlatingPower") || pot.DynamicVars.ContainsKey("BufferPower") || pot.DynamicVars.ContainsKey("IntangiblePower")))//if no enemy intends to attack, then potions that reduces damage taken are useless
+			else if ((num_damage_received <= 0 || num_enemies_intends_attack == 0) && (pot.DynamicVars.ContainsKey("Block") || pot.DynamicVars.ContainsKey("PlatingPower") || pot.DynamicVars.ContainsKey("BufferPower") || pot.DynamicVars.ContainsKey("IntangiblePower")))//if no enemy intends to attack, then potions that reduces damage taken are useless
 			{
 				//ignore
 			}
-			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0 || num_weak_enemies == num_enemies_intends_attack) && pot.DynamicVars.ContainsKey("WeakPower"))//if no enemy intends to attack, then potions that weakens enemy are useless
+			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0 || num_damage_received <= 0 || num_weak_enemies == num_enemies_intends_attack) && pot.DynamicVars.ContainsKey("WeakPower"))//if no enemy intends to attack, then potions that weakens enemy are useless
 			{
 				//ignore
 			}
-			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0) && pot.DynamicVars.ContainsKey("DamageDecrease"))//if no enemy intends to attack, then potions that weakens enemy are useless
+			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0 || num_damage_received <= 0) && pot.DynamicVars.ContainsKey("DamageDecrease"))//if no enemy intends to attack, then potions that weakens enemy are useless
 			{
 				//ignore
 			}
-			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0) && (pot.TargetType == TargetType.AllEnemies || pot.TargetType == TargetType.AnyEnemy || pot.TargetType == TargetType.RandomEnemy) && pot.DynamicVars.ContainsKey("StrengthPower"))//if no enemy intends to attack, then potions that reduces enemy Strength are useless
+			else if ((num_enemies_intends_attack == 0 || num_enemy_damage == 0 || num_damage_received <= 0) && (pot.TargetType == TargetType.AllEnemies || pot.TargetType == TargetType.AnyEnemy || pot.TargetType == TargetType.RandomEnemy) && pot.DynamicVars.ContainsKey("StrengthPower"))//if no enemy intends to attack, then potions that reduces enemy Strength are useless
 			{
 				//ignore
 			}
