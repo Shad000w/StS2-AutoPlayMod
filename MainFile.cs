@@ -553,7 +553,22 @@ public class Patch
 
 				num_damage_received += player.Creature.GetPowerAmount<DisintegrationPower>() + player.Creature.GetPowerAmount<ConstrictPower>();
 
-				if (num_damage_received <= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>())
+				int player_block = player.Creature.Block;
+				if(player_block == 0)
+				{
+					var relicOrichalcum = player.Relics.FirstOrDefault(relic => relic is Orichalcum);
+					if(relicOrichalcum != null)
+					{
+						player_block += relicOrichalcum.DynamicVars.Block.IntValue;
+					}
+					relicOrichalcum = player.Relics.FirstOrDefault(relic => relic is FakeOrichalcum);
+					if (relicOrichalcum != null)
+					{
+						player_block += relicOrichalcum.DynamicVars.Block.IntValue;
+					}
+				}
+
+				if (num_damage_received <= player_block + player.Creature.GetPowerAmount<PlatingPower>())
 				{
 					//we either have no damage debuffs or we can block them so no reason to play this round further
 					RunManager.Instance.ActionQueueSynchronizer.RequestEnqueue(new EndPlayerTurnAction(player, combatState.RoundNumber));
@@ -891,7 +906,23 @@ public class Patch
 		}
 
 		num_damage_received += player.Creature.GetPowerAmount<DisintegrationPower>() + player.Creature.GetPowerAmount<ConstrictPower>();
-		num_damage_received -= player.Creature.Block + player.Creature.GetPowerAmount<PlatingPower>();
+
+		int player_block = player.Creature.Block;
+		if (player_block == 0)
+		{
+			var relicOrichalcum = player.Relics.FirstOrDefault(relic => relic is Orichalcum);
+			if (relicOrichalcum != null)
+			{
+				player_block += relicOrichalcum.DynamicVars.Block.IntValue;
+			}
+			relicOrichalcum = player.Relics.FirstOrDefault(relic => relic is FakeOrichalcum);
+			if (relicOrichalcum != null)
+			{
+				player_block += relicOrichalcum.DynamicVars.Block.IntValue;
+			}
+		}
+
+		num_damage_received -= player_block + player.Creature.GetPowerAmount<PlatingPower>();
 
 		if (num_enemies_survive_this_turn == 0 || num_enemies_survive_this_turn == num_minions_survive_this_turn)//no enemies will survive after this card was played
 		{
