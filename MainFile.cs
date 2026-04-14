@@ -1058,7 +1058,11 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (pot.DynamicVars.ContainsKey("Energy") && minimum_energy_needed_to_play_card > pot.DynamicVars.Energy.IntValue)//if we have no cards in hand that uses energy or only cards with higher energy cost than we can get, then potions that gives us energy are useless
+			else if (pot.DynamicVars.ContainsKey("Energy") && !pot.DynamicVars.ContainsKey("Cards") && minimum_energy_needed_to_play_card > pot.DynamicVars.Energy.IntValue)//if we have no cards in hand that uses energy or only cards with higher energy cost than we can get, then potions that gives us energy are useless
+			{
+				//ignore
+			}
+			else if (pot.DynamicVars.ContainsKey("Energy") && pot.DynamicVars.ContainsKey("Cards") && (no_play || (no_draw && minimum_energy_needed_to_play_card > pot.DynamicVars.Energy.IntValue)))//Cure All conditions are bit different
 			{
 				//ignore
 			}
