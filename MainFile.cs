@@ -487,11 +487,17 @@ public class Patch
 				if (usedThisCombat == null || (bool)usedThisCombat == false) return;
 			}
 
-			if(player.Relics.Any(relic => relic is PenNib or Nunchaku or TuningFork or IronClub))//only end turn automatically if there are no card counting relics
+			if (player.Relics.Any(relic => relic is PenNib or Nunchaku or TuningFork or IronClub))//only end turn automatically if there are no card counting relics
 			{
 				return;
 			}
-			else if(player.Deck.Cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize))
+
+			CardPile handPile = PileType.Hand.GetPile(player);
+			CardPile drawPile = PileType.Draw.GetPile(player);
+			CardPile discardPile = PileType.Discard.GetPile(player);
+			var all_reachable_cards = handPile.Cards.Concat(drawPile.Cards).Concat(discardPile.Cards);
+
+			if (all_reachable_cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize))// or NotYet))
 			{
 				return;
 			}
@@ -528,8 +534,6 @@ public class Patch
 					}
 				}
 			}
-
-			CardPile handPile = PileType.Hand.GetPile(player);
 
 			if (num_enemies_survive_this_turn == 0 || num_enemies_survive_this_turn == num_minions_survive_this_turn)//no enemies will survive after turn started
 			{
@@ -892,6 +896,9 @@ public class Patch
 		}
 
 		CardPile handPile = PileType.Hand.GetPile(player);
+		CardPile drawPile = PileType.Draw.GetPile(player);
+		CardPile discardPile = PileType.Discard.GetPile(player);
+		var all_reachable_cards = handPile.Cards.Concat(drawPile.Cards).Concat(discardPile.Cards);
 
 		for (int th = 0; th < handPile.Cards.Count; th++)
 		{
@@ -931,7 +938,7 @@ public class Patch
 		if (num_enemies_survive_this_turn == 0 || num_enemies_survive_this_turn == num_minions_survive_this_turn)//no enemies will survive after this card was played
 		{
 			bool has_any_card_counting_relic = player.Relics.Any(relic => relic is PenNib or Nunchaku or TuningFork or IronClub);
-			bool has_fatal_or_alchemize_card = player.Deck.Cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize or NotYet);
+			bool has_fatal_or_alchemize_card = all_reachable_cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize);//; or NotYet);
 
 			if (!has_fatal_or_alchemize_card && !has_any_card_counting_relic && num_damage_received <= 0)
 			{
@@ -984,8 +991,6 @@ public class Patch
 			}
 		}
 
-		CardPile drawPile = PileType.Draw.GetPile(player);
-		CardPile discardPile = PileType.Discard.GetPile(player);
 		bool any_playable_card_in_draw_pile = drawPile.Cards.Any(card => card.Keywords.Contains(CardKeyword.Unplayable) == false);
 		bool any_playable_card_in_discard_pile = discardPile.Cards.Any(card => card.Keywords.Contains(CardKeyword.Unplayable) == false);
 		int total_damage_from_potions = 0;
