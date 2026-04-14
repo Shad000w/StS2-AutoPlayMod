@@ -839,7 +839,7 @@ public class Patch
 			}
 		}
 
-		int num_enemies_survive_this_turn = 0, num_minions_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_damage_received = 0;
+		int num_enemies_survive_this_turn = 0, num_enemies_alive = 0, num_minions_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_damage_received = 0;
 		List<(Creature creature, int value)> remaining_enemies_alive = [];
 		bool doom_potion_useful = false;
 
@@ -847,9 +847,13 @@ public class Patch
 		for (int th = 0; th < enemies.Count; th++)
 		{
 			Creature enemy = enemies[th];
+
+			if (enemy.IsAlive) num_enemies_alive++;
+			else continue;
+
 			int damage_from_poison = (enemy.GetPower<PoisonPower>()?.CalculateTotalDamageNextTurn() ?? 0);
 
-			if (enemy.IsAlive && (enemy.Monster?.Id.Entry == "DOOR" || enemy.GetPowerAmount<StockPower>() > 0 || enemy.GetPowerAmount<SurprisePower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<AdaptablePower>() > 0 || damage_from_poison+damage_from_bomb < enemy.CurrentHp))
+			if (enemy.Monster?.Id.Entry == "DOOR" || enemy.GetPowerAmount<StockPower>() > 0 || enemy.GetPowerAmount<SurprisePower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<AdaptablePower>() > 0 || damage_from_poison + damage_from_bomb < enemy.CurrentHp)
 			{
 				num_enemies_survive_this_turn++;
 				int num_enemy_damage = 0;
@@ -858,7 +862,7 @@ public class Patch
 				{
 					num_minions_survive_this_turn++;
 				}
-				if(enemy.GetPowerAmount<DoomPower>() < enemy.CurrentHp)
+				if (enemy.GetPowerAmount<DoomPower>() < enemy.CurrentHp)
 				{
 					doom_potion_useful = true;
 				}
@@ -927,7 +931,7 @@ public class Patch
 		if (num_enemies_survive_this_turn == 0 || num_enemies_survive_this_turn == num_minions_survive_this_turn)//no enemies will survive after this card was played
 		{
 			bool has_any_card_counting_relic = player.Relics.Any(relic => relic is PenNib or Nunchaku or TuningFork or IronClub);
-			bool has_fatal_or_alchemize_card = player.Deck.Cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize);
+			bool has_fatal_or_alchemize_card = player.Deck.Cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize or NotYet);
 
 			if (!has_fatal_or_alchemize_card && !has_any_card_counting_relic && num_damage_received <= 0)
 			{
@@ -946,7 +950,7 @@ public class Patch
 			int card_energy_cost = card.EnergyCost.GetWithModifiers(CostModifiers.All);
 			//Log.Info(th + ". card: " + card.Title + " card_type: " + card.Type + " card_star_cost: " + card_star_cost + ", card_energy_cost: " + card_energy_cost);
 
-			if (card.CanPlay(out UnplayableReason reason, preventer: out _))
+			if (card.CanPlay(out UnplayableReason reason, preventer: out _) && (num_enemies_alive > 0 || (card.TargetType != TargetType.AnyEnemy && card.TargetType != TargetType.RandomEnemy && card.TargetType != TargetType.AllEnemies)))
 			{
 				return;
 			}
