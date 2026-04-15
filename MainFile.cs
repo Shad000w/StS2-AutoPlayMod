@@ -637,6 +637,7 @@ public class Patch
 				for (int th = 0; th < handPile.Cards.Count; th++)
 				{
 					CardModel card = handPile.Cards[th];
+					bool can_be_played = card.CanPlay(out UnplayableReason reason, preventer: out _);
 					if (card.IsSlyThisTurn)
 					{
 						if (!has_flechettes)//if Flechettes is in hand do not auto discard Sly cards
@@ -648,12 +649,16 @@ public class Patch
 					{
 						if (!has_any_exhaust_power_card && //only consider status cards if we can't exhaust or transform them this round
 							!card.Keywords.Contains(CardKeyword.Ethereal) && //if the status card is Ethereal then discarding it doesn't make a sense
-							card is not FranticEscape && (card is not Slimed || !card.CanPlay()))//exclude Frantic Escape and Slimed
+							card is not FranticEscape && (card is not Slimed || !can_be_played))//exclude Frantic Escape and Slimed
 						{
 							cards_to_discard_optimally.Add(card);
 						}
 					}
-					else if(card.Keywords.Contains(CardKeyword.Ethereal) && !card.CanPlay())//if it isn't Sly or status card and the card is ethereal and we can't play it then it should be optimal choice to discard it
+					else if(card.Keywords.Contains(CardKeyword.Ethereal) && !can_be_played)//if it isn't Sly or status card and the card is ethereal and we can't play it then it should be optimal choice to discard it
+					{
+						cards_to_discard_optimally.Add(card);
+					}
+					else if(!can_be_played && ((reason & UnplayableReason.BlockedByHook) == UnplayableReason.BlockedByHook) && card.Affliction != null && card.Affliction.Id.Entry == "BOUND")//Bound cards are optimal to discard too
 					{
 						cards_to_discard_optimally.Add(card);
 					}
