@@ -558,7 +558,7 @@ public class Patch
 						{
 							num_damage_received += card.DynamicVars.Damage.IntValue;
 						}
-						else if(card.DynamicVars.ContainsKey("HpLoss"))
+						else if (card.DynamicVars.ContainsKey("HpLoss"))
 						{
 							num_damage_received += card.DynamicVars.HpLoss.IntValue;
 						}
@@ -568,10 +568,10 @@ public class Patch
 				num_damage_received += player.Creature.GetPowerAmount<DisintegrationPower>() + player.Creature.GetPowerAmount<ConstrictPower>();
 
 				int player_block = player.Creature.Block;
-				if(player_block == 0)
+				if (player_block == 0)
 				{
 					var relicOrichalcum = player.Relics.FirstOrDefault(relic => relic is Orichalcum);
-					if(relicOrichalcum != null)
+					if (relicOrichalcum != null)
 					{
 						player_block += relicOrichalcum.DynamicVars.Block.IntValue;
 					}
@@ -585,6 +585,11 @@ public class Patch
 				if (relicCloakClaps != null)
 				{
 					player_block += handPile.Cards.Count;
+				}
+				var relicRipleBasin = player.Relics.FirstOrDefault(relic => relic is RippleBasin);
+				if (relicRipleBasin != null && !CombatManager.Instance.History.CardPlaysFinished.Any((CardPlayFinishedEntry e) => e.HappenedThisTurn(combatState) && e.CardPlay.Card.Type == CardType.Attack && e.CardPlay.Card.Owner == player))
+				{
+					player_block += relicRipleBasin.DynamicVars.Block.IntValue;
 				}
 
 				if (num_damage_received <= player_block + player.Creature.GetPowerAmount<PlatingPower>())
@@ -802,7 +807,7 @@ public class Patch
 		var confirmMethod = AccessTools.Method(__instance.GetType(), "OnSelectModeConfirmButtonPressed");
 		if (confirmMethod != null)
 		{
-			confirmMethod.Invoke(__instance, new object[] { null! });
+			confirmMethod.Invoke(__instance, [null!]);
 		}
 	}
 
@@ -956,6 +961,11 @@ public class Patch
 		if (relicCloakClaps != null)
 		{
 			player_block += handPile.Cards.Count;
+		}
+		var relicRipleBasin = player.Relics.FirstOrDefault(relic => relic is RippleBasin);
+		if (relicRipleBasin != null && !CombatManager.Instance.History.CardPlaysFinished.Any((CardPlayFinishedEntry e) => e.HappenedThisTurn(player.Creature.CombatState) && e.CardPlay.Card.Type == CardType.Attack && e.CardPlay.Card.Owner == player))
+		{
+			player_block += relicRipleBasin.DynamicVars.Block.IntValue;
 		}
 
 		num_damage_received -= player_block + player.Creature.GetPowerAmount<PlatingPower>();
