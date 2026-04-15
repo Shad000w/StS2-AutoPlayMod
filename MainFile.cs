@@ -1051,10 +1051,6 @@ public class Patch
 			{
 				//ignore
 			}
-			else if (pot.DynamicVars.ContainsKey("VulnerablePower"))//if we can't play any card, then potions that adds Vulnerability are useless
-			{
-				//ignore
-			}
 			else if (pot.DynamicVars.ContainsKey("Forge"))//if we can't play any card, then potions that Forges are useless
 			{
 				//ignore
@@ -1072,6 +1068,10 @@ public class Patch
 				//ignore
 			}
 			else if ((num_enemies_intends_attack == 0 || num_damage_received <= 0) && pot.DynamicVars.ContainsKey("DamageDecrease"))//if no enemy intends to attack, then potions that weakens enemy are useless
+			{
+				//ignore
+			}
+			else if (pot.DynamicVars.ContainsKey("VulnerablePower") && !pot.DynamicVars.ContainsKey("WeakPower"))//if we can't play any card, then potions that adds Vulnerability are useless
 			{
 				//ignore
 			}
