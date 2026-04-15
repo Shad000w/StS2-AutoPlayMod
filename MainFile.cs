@@ -581,6 +581,11 @@ public class Patch
 						player_block += relicOrichalcum.DynamicVars.Block.IntValue;
 					}
 				}
+				var relicCloakClaps = player.Relics.FirstOrDefault(relic => relic is CloakClasp);
+				if (relicCloakClaps != null)
+				{
+					player_block += handPile.Cards.Count;
+				}
 
 				if (num_damage_received <= player_block + player.Creature.GetPowerAmount<PlatingPower>())
 				{
@@ -941,6 +946,11 @@ public class Patch
 			{
 				player_block += relicOrichalcum.DynamicVars.Block.IntValue;
 			}
+		}
+		var relicCloakClaps = player.Relics.FirstOrDefault(relic => relic is CloakClasp);
+		if (relicCloakClaps != null)
+		{
+			player_block += handPile.Cards.Count;
 		}
 
 		num_damage_received -= player_block + player.Creature.GetPowerAmount<PlatingPower>();
