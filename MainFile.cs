@@ -436,13 +436,23 @@ public class Patch
 	[HarmonyPostfix]
 	private static void AfterCardPlayed(CardModel __instance, ref Task __result)
 	{
-		__result = AfterCardPlayedFinished(__result, __instance);
+		if (ModState.IgnoreCardPlay) return;
+		else if(NPlayerHand.Instance?.InCardPlay == true)
+		{
+			ModState.IgnoreCardPlay = true;
+		}
+		__result = AfterCardPlayedFinished(__result, __instance, NPlayerHand.Instance?.InCardPlay == true);
 	}
 
-	private static async Task AfterCardPlayedFinished(Task originalTask, CardModel __instance)
+	private static async Task AfterCardPlayedFinished(Task originalTask, CardModel __instance, bool cancel_cardplay_ignore)
 	{
 		ModState.IgnoreEnemyClickUntilMs = Time.GetTicksMsec() + 250;
 		await originalTask;
+
+		if (cancel_cardplay_ignore)
+		{
+			ModState.IgnoreCardPlay = false;
+		}
 
 		if (CombatManager.Instance.IsPlayPhase)
 		{
@@ -1193,5 +1203,6 @@ public class Patch
 		public static NCreature? TargettedEnemy;
 		public static bool DoNotHideReticle;
 		public static ulong IgnoreEnemyClickUntilMs;
+		public static bool IgnoreCardPlay;
 	}
 }
