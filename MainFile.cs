@@ -3,6 +3,7 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Cards;
@@ -286,7 +287,7 @@ public class Patch
 	{
 		if (__instance == null || __instance.CardModel == null || __instance?.CardModel.CombatState == null) return;
 
-		if (__instance.CardModel.TargetType == TargetType.AnyEnemy && IsAutoPlayable(__instance.CardModel))
+		if ((__instance.CardModel.TargetType == TargetType.AnyEnemy && IsAutoPlayable(__instance.CardModel)) || (__instance.CardModel.TargetType == TargetType.AllEnemies || __instance.CardModel.TargetType == TargetType.RandomEnemy && __instance.CardModel.CombatState.HittableEnemies.Count(enemy => enemy.IsAlive) == 1))
 		{
 			var target = __instance.CardModel.CombatState.HittableEnemies[0];
 			if (target is null) return;
@@ -297,18 +298,18 @@ public class Patch
 
 			__instance.CardNode?.SetPreviewTarget(target);
 		}
-		else
+		else if(__instance.CardModel.TargetType == TargetType.AnyEnemy || __instance.CardModel.TargetType == TargetType.AllEnemies || __instance.CardModel.TargetType == TargetType.RandomEnemy)
 		{
 			int num_enemies = 0, num_enemies_with_same_damage_modifiers = 0;
 			Creature? first = null;
 			bool is_vulnerable = false, is_debilitated = false, is_fluttery = false, is_slippery = false;
-			int hardtokill_amount = 0;
+			int hardtokill_amount = 0, Hardenedshell_amount = 99;
 			foreach (Creature enemy in __instance.CardModel.CombatState.HittableEnemies)
 			{ 
 				if(enemy.IsAlive)
 				{
 					num_enemies++;
-					if (enemy.HasPower<VulnerablePower>() || enemy.HasPower<HardToKillPower>() || enemy.HasPower<FlutterPower>() || enemy.HasPower<SlipperyPower>())
+					if (enemy.HasPower<VulnerablePower>() || enemy.HasPower<HardToKillPower>() || enemy.HasPower<FlutterPower>() || enemy.HasPower<SlipperyPower>() || enemy.HasPower<HardenedShellPower>())
 					{						
 						if (first == null)
 						{
@@ -317,16 +318,23 @@ public class Patch
 							is_vulnerable = enemy.HasPower<VulnerablePower>();
 							is_debilitated = enemy.HasPower<DebilitatePower>();
 							hardtokill_amount = enemy.GetPowerAmount<HardToKillPower>();
+							Hardenedshell_amount = 99;
+							var hardenedShell = enemy.GetPower<HardenedShellPower>();
+							if (hardenedShell != null)
+							{
+								Hardenedshell_amount = hardenedShell.DisplayAmount;
+							}
 							is_fluttery = enemy.HasPower<FlutterPower>();
 							is_slippery = enemy.HasPower<SlipperyPower>();
 						}
-						else if(enemy.HasPower<SlipperyPower>() == is_slippery && enemy.HasPower<VulnerablePower>() == is_vulnerable && enemy.GetPowerAmount<HardToKillPower>() == hardtokill_amount && enemy.HasPower<FlutterPower>() == is_fluttery && (!is_vulnerable || is_debilitated == enemy.HasPower<SlipperyPower>()))
+						else if(enemy.HasPower<SlipperyPower>() == is_slippery && enemy.HasPower<VulnerablePower>() == is_vulnerable && enemy.GetPowerAmount<HardToKillPower>() == hardtokill_amount && enemy.HasPower<FlutterPower>() == is_fluttery && (enemy.GetPower<HardenedShellPower>()?.DisplayAmount ?? 99) == Hardenedshell_amount && (!is_vulnerable || is_debilitated == enemy.HasPower<SlipperyPower>()))
 						{
 							num_enemies_with_same_damage_modifiers++;
 						}						
 					}
 				}
 			}
+
 			if (num_enemies_with_same_damage_modifiers > 0 && num_enemies_with_same_damage_modifiers == num_enemies)
 			{
 				__instance.CardNode?.SetPreviewTarget(first);
