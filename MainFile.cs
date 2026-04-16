@@ -505,7 +505,7 @@ public class Patch
 				if (usedThisCombat == null || (bool)usedThisCombat == false) return;
 			}
 
-			if (player.Relics.Any(relic => relic is PenNib or Nunchaku or TuningFork or IronClub))//only end turn automatically if there are no card counting relics
+			if (player.Relics.Any(relic => relic is PenNib or Nunchaku or TuningFork or IronClub or GalacticDust))//only end turn automatically if there are no card counting relics
 			{
 				return;
 			}
@@ -980,7 +980,7 @@ public class Patch
 
 		if (num_enemies_survive_this_turn == 0 || num_enemies_survive_this_turn == num_minions_survive_this_turn)//no enemies will survive after this card was played
 		{
-			bool has_any_card_counting_relic = player.Relics.Any(relic => relic is PenNib or Nunchaku or TuningFork or IronClub);
+			bool has_any_card_counting_relic = player.Relics.Any(relic => relic is PenNib or Nunchaku or TuningFork or IronClub or GalacticDust);
 			bool has_fatal_or_alchemize_card = all_reachable_cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize);//; or NotYet);
 
 			if (!has_fatal_or_alchemize_card && !has_any_card_counting_relic && num_damage_received <= 0)
