@@ -629,18 +629,19 @@ public class Patch
 			else if (!IsExhaustTypeOfSelect && !IsDiscardTypeOfSelect && !ModSettings.AutomaticSelect) return true;
 
 			CardPile handPile = PileType.Hand.GetPile(ModState.CurrentPlayer);
+			var filteredPile = handPile.Cards.Where(c => filter == null || filter(c)).ToList();
 
-			if (handPile.Cards.Count == 0) return true;//if we have no cards, game already selects nothing by default, so we can leave it to original function
+			if (filteredPile.Count == 0) return true;//if we have no cards, game already selects nothing by default, so we can leave it to original function
 			else if (prefs.MaxSelect == 999999999) return true;//Gambler's Brew potion
 			else if (prefs.RequireManualConfirmation || (!IsDiscardTypeOfSelect && prefs.MinSelect == 0)) return true;
 
 			var selected = new List<CardModel> { };
 
-			if (handPile.Cards.Count <= prefs.MinSelect)//if we have less cards than amount needed to select, select them automatically
+			if (filteredPile.Count <= prefs.MinSelect)//if we have less cards than amount needed to select, select them automatically
 			{
-				for (int th = 0; th < handPile.Cards.Count; th++)
+				for (int th = 0; th < filteredPile.Count; th++)
 				{
-					selected.Add(handPile.Cards[th]);
+					selected.Add(filteredPile[th]);
 				}
 			}
 			else if (IsDiscardTypeOfSelect)//discard selection
@@ -650,13 +651,13 @@ public class Patch
 
 				List<CardModel> cards_to_discard_optimally = [];
 
-				for (int th = 0; th < handPile.Cards.Count; th++)
+				for (int th = 0; th < filteredPile.Count; th++)
 				{
-					CardModel card = handPile.Cards[th];
+					CardModel card = filteredPile[th];
 					bool can_be_played = card.CanPlay(out UnplayableReason reason, preventer: out _);
 					if (card.IsSlyThisTurn)
 					{
-						if (!has_flechettes)//if Flechettes is in hand do not auto discard Sly cards
+						if (!has_flechettes || card.Type != CardType.Skill)//if Flechettes is in hand do not auto discard Sly cards unless they are not a skill
 						{
 							cards_to_discard_optimally.Add(card);
 						}
@@ -707,11 +708,11 @@ public class Patch
 				}
 				else
 				{
-					CardModel first = handPile.Cards[0];
+					CardModel first = filteredPile[0];
 
-					for (int th = 1; th < handPile.Cards.Count; th++)
+					for (int th = 1; th < filteredPile.Count; th++)
 					{
-						if (!CardsEqual(first, handPile.Cards[th]))
+						if (!CardsEqual(first, filteredPile[th]))
 						{
 							return true;
 						}
@@ -719,7 +720,7 @@ public class Patch
 
 					for (int th = 0; th < prefs.MinSelect; th++)
 					{
-						selected.Add(handPile.Cards[th]);
+						selected.Add(filteredPile[th]);
 					}
 				}
 			}
@@ -727,9 +728,9 @@ public class Patch
 			{
 				List<CardModel> cards_to_exhaust_optimally = [];
 
-				for (int th = 0; th < handPile.Cards.Count; th++)
+				for (int th = 0; th < filteredPile.Count; th++)
 				{
-					CardModel card = handPile.Cards[th];
+					CardModel card = filteredPile[th];
 					if (!card.Keywords.Contains(CardKeyword.Ethereal) && ((card.Type > CardType.Power && card is not FranticEscape) || (card is Bombardment or HowlFromBeyond && !card.CanPlay())))
 					{
 						cards_to_exhaust_optimally.Add(card);
@@ -763,10 +764,10 @@ public class Patch
 				}
 				else
 				{
-					CardModel first = handPile.Cards[0];
-					for (int th = 1; th < handPile.Cards.Count; th++)
+					CardModel first = filteredPile[0];
+					for (int th = 1; th < filteredPile.Count; th++)
 					{
-						if (!CardsEqual(first, handPile.Cards[th]))
+						if (!CardsEqual(first, filteredPile[th]))
 						{
 							return true;
 						}
@@ -774,16 +775,16 @@ public class Patch
 
 					for (int th = 0; th < prefs.MinSelect; th++)
 					{
-						selected.Add(handPile.Cards[th]);
+						selected.Add(filteredPile[th]);
 					}
 				}
 			}
 			else//not discard nor exhaust selection - only select automatically when all cards in hand are identical
 			{
-				CardModel first = handPile.Cards[0];
-				for (int th = 1; th < handPile.Cards.Count; th++)
+				CardModel first = filteredPile[0];
+				for (int th = 1; th < filteredPile.Count; th++)
 				{
-					if (!CardsEqual(first, handPile.Cards[th]))
+					if (!CardsEqual(first, filteredPile[th]))
 					{
 						return true;
 					}
@@ -791,7 +792,7 @@ public class Patch
 
 				for (int th = 0; th < prefs.MinSelect; th++)
 				{
-					selected.Add(handPile.Cards[th]);
+					selected.Add(filteredPile[th]);
 				}
 			}
 
