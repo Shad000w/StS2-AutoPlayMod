@@ -146,8 +146,9 @@ public class Patch
 	[HarmonyPostfix]
 	private static void NCreatureVisuals_Ready(NCreatureVisuals __instance)
 	{
-		var parent = __instance.GetParent<NCreature>();
+		if (__instance == null) return;
 
+		var parent = __instance.GetParent<NCreature>();
 
 		if (parent?.Hitbox != null && parent.Entity.IsMonster && !parent.Entity.IsPet && parent.Entity.IsAlive)
 		{
@@ -221,6 +222,8 @@ public class Patch
 	{
 		var card = AccessTools.PropertyGetter(typeof(NCardPlay), "Card")?.Invoke(__instance, null) as CardModel;
 
+		if (card == null) return true;
+
 		if (!IsAutoPlayable(card)) return true;
 
 		// manually set _target if type == AnyEnemy
@@ -285,8 +288,8 @@ public class Patch
 	[HarmonyPostfix]
 	private static void CardOnFocus(NHandCardHolder __instance)
 	{
-		if (__instance == null || __instance.CardModel == null || __instance?.CardModel.CombatState == null) return;
-
+		if (__instance == null || __instance.CardModel == null || __instance?.CardModel.CombatState == null || __instance.CardModel.CombatState.HittableEnemies.Count == 0) return;
+ 
 		if ((__instance.CardModel.TargetType == TargetType.AnyEnemy && IsAutoPlayable(__instance.CardModel)) || (__instance.CardModel.TargetType == TargetType.AllEnemies || __instance.CardModel.TargetType == TargetType.RandomEnemy && __instance.CardModel.CombatState.HittableEnemies.Count(enemy => enemy.IsAlive) == 1))
 		{
 			var target = __instance.CardModel.CombatState.HittableEnemies[0];
