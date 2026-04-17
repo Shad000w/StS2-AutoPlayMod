@@ -18,6 +18,7 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Modding;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
+using MegaCrit.Sts2.Core.Models.Monsters;
 using MegaCrit.Sts2.Core.Models.Potions;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
@@ -889,12 +890,12 @@ public class Patch
 		{
 			Creature enemy = enemies[th];
 
-			if (enemy.IsAlive) num_enemies_alive++;
+			if (enemy.IsAlive || enemy.Monster is TestSubject) num_enemies_alive++;
 			else continue;
 
 			int damage_from_poison = (enemy.GetPower<PoisonPower>()?.CalculateTotalDamageNextTurn() ?? 0);
 
-			if (enemy.Monster?.Id.Entry == "DOOR" || enemy.GetPowerAmount<StockPower>() > 0 || enemy.GetPowerAmount<SurprisePower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<AdaptablePower>() > 0 || damage_from_poison + damage_from_bomb < enemy.CurrentHp)
+			if (enemy.Monster is Doormaker || enemy.GetPowerAmount<StockPower>() > 0 || enemy.GetPowerAmount<SurprisePower>() > 0 || enemy.GetPowerAmount<InfestedPower>() > 0 || enemy.GetPowerAmount<SteamEruptionPower>() > 0 || enemy.GetPowerAmount<AdaptablePower>() > 0 || damage_from_poison + damage_from_bomb < enemy.CurrentHp)
 			{
 				num_enemies_survive_this_turn++;
 				int num_enemy_damage = 0;
