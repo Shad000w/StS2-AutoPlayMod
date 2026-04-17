@@ -519,7 +519,7 @@ public class Patch
 			CardPile discardPile = PileType.Discard.GetPile(player);
 			var all_reachable_cards = handPile.Cards.Concat(drawPile.Cards).Concat(discardPile.Cards);
 
-			if (all_reachable_cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize))// or NotYet))
+			if (all_reachable_cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize or NotYet && player.Creature.CurrentHp < player.Creature.MaxHp))
 			{
 				return;
 			}
@@ -986,7 +986,7 @@ public class Patch
 		if (num_enemies_survive_this_turn == 0 || num_enemies_survive_this_turn == num_minions_survive_this_turn)//no enemies will survive after this card was played
 		{
 			bool has_any_card_counting_relic = player.Relics.Any(relic => relic is PenNib or Nunchaku or TuningFork or IronClub or GalacticDust);
-			bool has_fatal_or_alchemize_card = all_reachable_cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize);//; or NotYet);
+			bool has_fatal_or_alchemize_card = all_reachable_cards.Any(card => card is Feed or TheHunt or HandOfGreed or Alchemize or NotYet && player.Creature.CurrentHp < player.Creature.MaxHp);
 
 			if (!has_fatal_or_alchemize_card && !has_any_card_counting_relic && num_damage_received <= 0)
 			{
