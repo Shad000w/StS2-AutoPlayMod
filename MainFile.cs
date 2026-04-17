@@ -884,6 +884,7 @@ public class Patch
 		int num_enemies_survive_this_turn = 0, num_enemies_alive = 0, num_minions_survive_this_turn = 0, num_enemies_intends_attack = 0, num_weak_enemies = 0, num_damage_received = 0;
 		List<(Creature creature, int value)> remaining_enemies_alive = [];
 		bool doom_potion_useful = false;
+		bool no_draw = player.Creature.HasPower<NoDrawPower>();
 
 		IReadOnlyList<Creature> enemies = player.Creature.CombatState.Enemies;
 		for (int th = 0; th < enemies.Count; th++)
@@ -903,6 +904,10 @@ public class Patch
 				if (enemy.HasPower<MinionPower>())
 				{
 					num_minions_survive_this_turn++;
+				}
+				if (enemy.HasPower<ScrutinyPower>())
+				{
+					no_draw = true;
 				}
 				if (enemy.GetPowerAmount<DoomPower>() < enemy.CurrentHp)
 				{
@@ -1045,7 +1050,6 @@ public class Patch
 		int num_cards_played_this_turn = CombatManager.Instance.History.CardPlaysStarted.Count(e =>	e.HappenedThisTurn(player.Creature.CombatState) &&e.CardPlay.Card.Owner.Creature == player.Creature);
 		var sloth = player.Creature.GetPower<SlothPower>();
 		bool no_play = (player.Creature.HasPower<RingingPower>() && num_cards_played_this_turn > 0) || (sloth != null && num_cards_played_this_turn >= sloth.Amount);
-		bool no_draw = player.Creature.HasPower<NoDrawPower>();
 
 		//if we got here, we have no cards to play or no energy to play them
 		foreach (PotionModel pot in player.Potions)
